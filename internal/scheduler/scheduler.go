@@ -3,6 +3,7 @@ package scheduler
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 	"math/rand/v2"
 	"sync"
@@ -128,6 +129,10 @@ func (s *Scheduler) Run(ctx context.Context, cfg model.Config) (checker.Result, 
 		return result, err
 	}
 	next, event := alert.Next(current.State, outcome, result.At, cfg.AlertThreshold)
+	last, err := json.Marshal(result)
+	if err != nil {
+		return result, err
+	}
 
 	record := store.Record{
 		MonitorID: cfg.ID,
@@ -139,6 +144,7 @@ func (s *Scheduler) Run(ctx context.Context, cfg model.Config) (checker.Result, 
 
 		CertExpires: result.CertExpires,
 		CertIssuer:  result.CertIssuer,
+		LastResult:  string(last),
 	}
 	if outcome == alert.OK {
 		ms := result.ResponseMs

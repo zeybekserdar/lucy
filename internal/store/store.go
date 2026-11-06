@@ -105,6 +105,8 @@ ALTER TABLE monitors ADD COLUMN domain_expires INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE monitors ADD COLUMN domain_reason TEXT NOT NULL DEFAULT '';
 ALTER TABLE monitors ADD COLUMN domain_checked INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE monitors ADD COLUMN domain_stage INTEGER NOT NULL DEFAULT 0;
+`, `
+ALTER TABLE monitors ADD COLUMN last_result TEXT NOT NULL DEFAULT '';
 `}
 
 type Store struct {
@@ -154,6 +156,7 @@ type Monitor struct {
 	LastOutcome alert.Outcome
 	ResponseMs  *int
 	Failure     string
+	LastResult  string // JSON of the latest check, empty before the first one
 
 	SSLExpires    time.Time
 	SSLIssuer     string
@@ -263,7 +266,7 @@ func encode(cfg model.Config) (string, string, error) {
 
 const monitorColumns = `id, name, url, method, headers, body, timeout_sec, interval_sec, alert_threshold,
 	conditions, phase, fail_streak, ok_streak, fail_since, since, last_check, last_outcome, response_ms, failure,
-	ssl_expires, ssl_issuer, ssl_stage, domain_expires, domain_reason, domain_checked, domain_stage`
+	ssl_expires, ssl_issuer, ssl_stage, domain_expires, domain_reason, domain_checked, domain_stage, last_result`
 
 func scanMonitor(row interface{ Scan(...any) error }) (Monitor, error) {
 	var m Monitor
@@ -273,7 +276,7 @@ func scanMonitor(row interface{ Scan(...any) error }) (Monitor, error) {
 	err := row.Scan(&m.ID, &m.Name, &m.URL, &m.Method, &headers, &m.Body, &m.TimeoutSec, &m.IntervalSec,
 		&m.AlertThreshold, &conditions, &phase, &m.State.FailStreak, &m.State.OkStreak, &failSince, &since,
 		&lastCheck, &outcome, &responseMs, &m.Failure,
-		&sslExpires, &m.SSLIssuer, &m.SSLStage, &domainExpires, &m.DomainReason, &domainChecked, &m.DomainStage)
+		&sslExpires, &m.SSLIssuer, &m.SSLStage, &domainExpires, &m.DomainReason, &domainChecked, &m.DomainStage, &m.LastResult)
 	if err != nil {
 		return m, err
 	}
@@ -347,6 +350,7 @@ type Record struct {
 	Notification *Notification
 	CertExpires  time.Time // zero keeps the known certificate
 	CertIssuer   string
+	LastResult   string
 }
 
 func (s *Store) Apply(ctx context.Context, r Record) error {
@@ -411,9 +415,9 @@ func (s *Store) Apply(ctx context.Context, r Record) error {
 	}
 
 	if _, err := tx.ExecContext(ctx, `UPDATE monitors SET phase = ?, fail_streak = ?, ok_streak = ?, fail_since = ?,
-		since = ?, last_check = ?, last_outcome = ?, response_ms = ?, failure = ? WHERE id = ?`,
+		since = ?, last_check = ?, last_outcome = ?, response_ms = ?, failure = ?, last_result = ? WHERE id = ?`,
 		r.Next.Phase, r.Next.FailStreak, r.Next.OkStreak, millis(r.Next.FailSince), since, at, r.Outcome,
-		r.ResponseMs, failure, r.MonitorID); err != nil {
+		r.ResponseMs, failure, r.LastResult, r.MonitorID); err != nil {
 		return err
 	}
 
@@ -507,6 +511,7 @@ type Incident struct {
 	StartedAt  time.Time
 	EndedAt    time.Time
 	NotifiedAt time.Time
+	Cause      string
 }
 
 // LatestIncidents returns the newest incident of each monitor.

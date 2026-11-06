@@ -61,3 +61,21 @@ export function formatRelativeDay(iso: string, now: number, lng: string): string
   const text = new Intl.RelativeTimeFormat(lng, { numeric: 'auto' }).format(days, 'day')
   return text.charAt(0).toLocaleUpperCase(lng) + text.slice(1)
 }
+
+export function formatClockSeconds(iso: string, lng: string): string {
+  return new Intl.DateTimeFormat(lng, { timeStyle: 'medium' }).format(new Date(iso))
+}
+
+/** Bugün, Dün, Pzt, 28 Eki: tarih geriye gittikçe daha az yakınlık varsayar. */
+export function formatNearDay(iso: string, now: number, lng: string): string {
+  const date = new Date(iso)
+  const startOfDay = (t: number) => new Date(t).setHours(0, 0, 0, 0)
+  const days = Math.round((startOfDay(now) - startOfDay(date.getTime())) / 86_400_000)
+  if (days <= 1) return formatRelativeDay(iso, now, lng)
+  const options: Intl.DateTimeFormatOptions = days < 7 ? { weekday: 'short' } : { day: 'numeric', month: 'short' }
+  return new Intl.DateTimeFormat(lng, options).format(date)
+}
+
+export function formatDate(iso: string, lng: string): string {
+  return new Intl.DateTimeFormat(lng, { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso))
+}

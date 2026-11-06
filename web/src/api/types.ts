@@ -72,6 +72,29 @@ export interface CheckResult {
   at: string
 }
 
+export type ChartRange = '24h' | '7d' | '30d'
+
+export interface HistoryEvent {
+  kind: 'outage' | 'no_data'
+  start: string
+  /** Sürüyorsa null. */
+  end: string | null
+  cause?: string
+}
+
+export interface History {
+  monitor: Monitor
+  from: string
+  to: string
+  /** from ile to arasına eşit aralıkla dizilmiş ortalamalar; başarılı kontrol yoksa null. */
+  points: (number | null)[]
+  avgMs: number | null
+  /** En yenisi başta, seçili aralıktan bağımsız olarak son 30 gün. */
+  events: HistoryEvent[]
+  failedChecks: number
+  lastResult: CheckResult | null
+}
+
 export interface AuthStatus {
   status: 'needsSetup' | 'loggedOut' | 'loggedIn'
   passwordChangedAt?: string

@@ -10,11 +10,11 @@ import { HeroStatus } from './HeroStatus'
 import styles from './HomePage.module.css'
 import { Legend } from './Legend'
 import { MonitorRow } from './MonitorRow'
-import { useDashboard } from './useDashboard'
+import type { DashboardState } from './useDashboard'
 
-export function HomePage() {
+export function HomePage({ dashboard }: { dashboard: DashboardState }) {
   const { t } = useTranslation()
-  const { data, now, failed, reload } = useDashboard()
+  const { data, now, failed, reload } = dashboard
 
   if (!data) {
     return (

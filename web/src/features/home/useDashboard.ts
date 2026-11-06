@@ -30,3 +30,5 @@ export function useDashboard() {
 
   return { ...state, reload }
 }
+
+export type DashboardState = ReturnType<typeof useDashboard>

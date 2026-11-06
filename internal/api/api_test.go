@@ -385,3 +385,87 @@ func TestWritesRequireJSON(t *testing.T) {
 		t.Fatalf("code = %d", resp.StatusCode)
 	}
 }
+
+type historyResult struct {
+	Monitor      monitorView `json:"monitor"`
+	Points       []*int      `json:"points"`
+	AvgMs        *int        `json:"avgMs"`
+	Events       []event     `json:"events"`
+	FailedChecks int         `json:"failedChecks"`
+	LastResult   *checker.Result
+}
+
+func TestHistoryFollowsAnOutage(t *testing.T) {
+	r := newRig(t)
+	url, healthy := flaky(t)
+	id := r.add(model.Config{Name: "a", URL: url, AlertThreshold: 2})
+	r.check(id, 1)
+
+	var history historyResult
+	if code := r.call("GET", "/api/monitors/"+id+"/history?range=24h", nil, &history); code != http.StatusOK {
+		t.Fatalf("history: %d", code)
+	}
+	if len(history.Points) != 96 || history.AvgMs == nil {
+		t.Fatalf("series: %d points, average %v", len(history.Points), history.AvgMs)
+	}
+	if history.LastResult == nil || !history.LastResult.OK || len(history.LastResult.Conditions) == 0 {
+		t.Fatalf("last result: %+v", history.LastResult)
+	}
+	if len(history.Events) != 0 {
+		t.Fatalf("events: %+v", history.Events)
+	}
+
+	healthy.Store(false)
+	r.check(id, 3)
+	history = historyResult{}
+	r.call("GET", "/api/monitors/"+id+"/history", nil, &history)
+	if len(history.Points) != 168 {
+		t.Fatalf("default range: %d points", len(history.Points))
+	}
+	if history.FailedChecks != 3 {
+		t.Fatalf("failed checks: %d", history.FailedChecks)
+	}
+	if history.LastResult == nil || history.LastResult.OK || history.LastResult.Status != 503 {
+		t.Fatalf("last result: %+v", history.LastResult)
+	}
+	if len(history.Events) != 1 || history.Events[0].Kind != "outage" || history.Events[0].End != nil ||
+		history.Events[0].Cause != "http:503 Service Unavailable" {
+		t.Fatalf("ongoing outage: %+v", history.Events)
+	}
+
+	healthy.Store(true)
+	r.check(id, 2)
+	history = historyResult{}
+	r.call("GET", "/api/monitors/"+id+"/history", nil, &history)
+	if len(history.Events) != 1 || history.Events[0].End == nil {
+		t.Fatalf("finished outage: %+v", history.Events)
+	}
+	if history.FailedChecks != 0 {
+		t.Fatalf("failed checks once up: %d", history.FailedChecks)
+	}
+}
+
+func TestHistoryRejectsWhatItCannotServe(t *testing.T) {
+	r := newRig(t)
+	url, _ := flaky(t)
+	id := r.add(model.Config{Name: "a", URL: url})
+	if code := r.call("GET", "/api/monitors/"+id+"/history?range=1y", nil, nil); code != http.StatusBadRequest {
+		t.Fatalf("bad range: %d", code)
+	}
+	if code := r.call("GET", "/api/monitors/nope/history", nil, nil); code != http.StatusNotFound {
+		t.Fatalf("missing monitor: %d", code)
+	}
+	r.client = newClient(t)
+	if code := r.call("GET", "/api/monitors/"+id+"/history", nil, nil); code != http.StatusUnauthorized {
+		t.Fatalf("signed out: %d", code)
+	}
+}
+
+func TestShortSilenceIsNotAnEvent(t *testing.T) {
+	if got := gapLimit(30); got != minGap {
+		t.Fatalf("short interval: %v", got)
+	}
+	if got := gapLimit(3600); got != 3*time.Hour {
+		t.Fatalf("long interval: %v", got)
+	}
+}

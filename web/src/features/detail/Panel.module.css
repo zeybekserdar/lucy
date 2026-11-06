@@ -1,0 +1,39 @@
+.panel {
+  position: fixed;
+  inset: 0 0 0 auto;
+  width: 520px;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  container-type: inline-size;
+  border: 0;
+  border-left: 1px solid var(--sep);
+  outline: none;
+  background: var(--bg);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  animation: slide-in var(--dur-panel) var(--ease-panel);
+}
+.panel:focus-visible { outline: none; }
+.panel::backdrop {
+  background: light-dark(oklch(0 0 0 / 0.22), oklch(0 0 0 / 0.5));
+  animation: fade-in var(--dur-panel) var(--ease-panel);
+}
+.closing { animation: slide-out var(--dur-panel) var(--ease-panel) forwards; }
+.closing::backdrop { animation: fade-out var(--dur-panel) var(--ease-panel) forwards; }
+
+.body { min-height: 100%; padding: 14px clamp(16px, 4cqi, 24px) var(--sp-32); }
+
+@keyframes slide-in { from { transform: translateX(100%); } }
+@keyframes slide-out { to { transform: translateX(100%); } }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes fade-out { to { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .panel { animation-name: fade-in; }
+  .closing { animation-name: fade-out; }
+}

@@ -1,4 +1,4 @@
-import type { AuthStatus, CheckResult, Dashboard, Monitor, MonitorConfig } from './types'
+import type { AuthStatus, ChartRange, CheckResult, Dashboard, History, Monitor, MonitorConfig } from './types'
 
 export class ApiError extends Error {
   status: number
@@ -71,6 +71,8 @@ export async function checkNow(id: string): Promise<void> {
 }
 
 export const fetchMonitor = (id: string) => request<MonitorConfig & { id: string }>(`/monitors/${id}`)
+export const fetchHistory = (id: string, range: ChartRange) =>
+  request<History>(`/monitors/${id}/history?range=${range}`)
 export const createMonitor = (config: MonitorConfig) => request<Monitor>('/monitors', 'POST', config)
 export const updateMonitor = (id: string, config: MonitorConfig) =>
   request<Monitor>(`/monitors/${id}`, 'PUT', config)

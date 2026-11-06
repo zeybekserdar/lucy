@@ -41,6 +41,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /api/monitors", s.authed(s.createMonitor))
 	mux.HandleFunc("POST /api/monitors/test", s.authed(s.testMonitor))
 	mux.HandleFunc("GET /api/monitors/{id}", s.authed(s.getMonitor))
+	mux.HandleFunc("GET /api/monitors/{id}/history", s.authed(s.history))
 	mux.HandleFunc("PUT /api/monitors/{id}", s.authed(s.updateMonitor))
 	mux.HandleFunc("DELETE /api/monitors/{id}", s.authed(s.deleteMonitor))
 	mux.HandleFunc("POST /api/monitors/{id}/check", s.authed(s.checkMonitor))
