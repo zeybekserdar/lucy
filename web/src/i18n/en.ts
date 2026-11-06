@@ -86,6 +86,8 @@ export const en: typeof tr = {
     generate: 'Generate a random topic',
     subscribeHint: 'After saving, subscribe to this topic in the ntfy app on your phone; the old topic stops receiving notifications.',
     token: 'Access token',
+    publicUrl: 'Lucy address',
+    publicUrlHint: 'Opens on your phone when you tap a notification. It must be reachable from the phone; localhost won’t work.',
     tokenNone: 'None',
     show: 'Show',
     hide: 'Hide',
@@ -100,7 +102,7 @@ export const en: typeof tr = {
     unreachable: 'Couldn’t reach the ntfy server.',
     failed: 'Couldn’t send the test. Try again.',
     about:
-      'You’re notified when an outage starts and ends, and 30, 14 and 7 days before an SSL certificate or domain expires. Notifications wait in a queue while the internet is down. With no topic, nothing is sent.',
+      'You’re notified when an outage starts and ends, and 14 and 7 days before an SSL certificate or domain expires. Notifications wait in a queue while the internet is down. With no topic, nothing is sent.',
     error: {
       url_scheme: 'The address must start with http:// or https://.',
       topic: 'Use only letters, digits, - and _; 64 characters at most.',
@@ -124,7 +126,7 @@ export const en: typeof tr = {
     update_other: 'Update {{count}} monitors: {{names}}',
     unchanged_one: 'Leave {{count}} monitor as it is',
     unchanged_other: 'Leave {{count}} monitors as they are',
-    notifications: 'Change the notification server and topic; the token is kept',
+    notifications: 'Change the notification settings; the token is kept',
     nothing: 'This file changes nothing.',
     invalid: '{{name}} · problem in: {{fields}}',
     invalidHint: 'Nothing is imported until these are fixed.',

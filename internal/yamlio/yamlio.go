@@ -18,8 +18,9 @@ const Version = 1
 var ErrVersion = errors.New("unsupported backup version")
 
 type Notifications struct {
-	Server string `yaml:"server,omitempty"`
-	Topic  string `yaml:"topic,omitempty"`
+	Server    string `yaml:"server,omitempty"`
+	Topic     string `yaml:"topic,omitempty"`
+	PublicURL string `yaml:"publicUrl,omitempty"`
 }
 
 // Backup never holds the ntfy token, so the file can be kept anywhere.

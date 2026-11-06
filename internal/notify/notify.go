@@ -89,6 +89,15 @@ func (l Live) Send(ctx context.Context, msg store.Notification) error {
 	return Ntfy{Server: settings.Server, Topic: settings.Topic, Token: settings.Token}.Send(ctx, msg)
 }
 
+// PublicURL is the saved address, empty when none is set.
+func (l Live) PublicURL(ctx context.Context) string {
+	settings, err := l.Store.Ntfy(ctx)
+	if err != nil {
+		return ""
+	}
+	return settings.PublicURL
+}
+
 // Configured reports whether notifications have somewhere to go.
 func (l Live) Configured(ctx context.Context) bool {
 	settings, err := l.Store.Ntfy(ctx)

@@ -73,6 +73,7 @@ func run(log *slog.Logger) error {
 	live := notify.Live{Store: db}
 	sched.Composer = &notify.Composer{Language: env("LUCY_LANG", "tr"), PublicURL: os.Getenv("LUCY_PUBLIC_URL")}
 	sched.Enabled = live.Configured
+	sched.Link = live.PublicURL
 	go notify.Worker{Store: db, Notifier: live, Log: log}.Run(ctx)
 
 	if err := sched.Start(ctx); err != nil {

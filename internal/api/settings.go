@@ -15,9 +15,15 @@ import (
 var ntfyTopic = regexp.MustCompile(`^[-_A-Za-z0-9]{1,64}$`)
 
 type ntfyView struct {
-	Server string `json:"server"`
-	Topic  string `json:"topic"`
-	Token  string `json:"token"`
+	Server    string `json:"server"`
+	Topic     string `json:"topic"`
+	Token     string `json:"token"`
+	PublicURL string `json:"publicUrl"`
+}
+
+func webAddress(value string) bool {
+	u, err := url.Parse(value)
+	return err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Host != ""
 }
 
 // readNtfy decodes and validates settings, answering the request on failure.
@@ -31,10 +37,15 @@ func readNtfy(w http.ResponseWriter, r *http.Request) (store.NtfySettings, bool)
 		Server: strings.TrimRight(strings.TrimSpace(view.Server), "/"),
 		Topic:  strings.TrimSpace(view.Topic),
 		Token:  strings.TrimSpace(view.Token),
+
+		PublicURL: strings.TrimRight(strings.TrimSpace(view.PublicURL), "/"),
 	}
 	fields := map[string]string{}
-	if u, err := url.Parse(settings.Server); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+	if !webAddress(settings.Server) {
 		fields["server"] = "url_scheme"
+	}
+	if settings.PublicURL != "" && !webAddress(settings.PublicURL) {
+		fields["publicUrl"] = "url_scheme"
 	}
 	if settings.Topic != "" && !ntfyTopic.MatchString(settings.Topic) {
 		fields["topic"] = "topic"
@@ -52,7 +63,9 @@ func (s *Server) getNtfy(w http.ResponseWriter, r *http.Request) {
 		s.fail(w, err)
 		return
 	}
-	writeJSON(w, http.StatusOK, ntfyView{Server: settings.Server, Topic: settings.Topic, Token: settings.Token})
+	writeJSON(w, http.StatusOK, ntfyView{
+		Server: settings.Server, Topic: settings.Topic, Token: settings.Token, PublicURL: settings.PublicURL,
+	})
 }
 
 func (s *Server) putNtfy(w http.ResponseWriter, r *http.Request) {
@@ -82,6 +95,7 @@ func (s *Server) testNtfy(w http.ResponseWriter, r *http.Request) {
 	if s.Scheduler.Composer != nil {
 		composer = *s.Scheduler.Composer
 	}
+	composer.PublicURL = settings.PublicURL
 	target := notify.Ntfy{Server: settings.Server, Topic: settings.Topic, Token: settings.Token}
 	// Detached: leaving the page must not turn a sent message into a failure.
 	status, err := target.Publish(context.WithoutCancel(r.Context()), composer.Test())

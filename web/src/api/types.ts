@@ -99,6 +99,8 @@ export interface NtfySettings {
   server: string
   topic: string
   token: string
+  /** Bildirime dokununca telefonda açılacak adres; boş olabilir. */
+  publicUrl: string
 }
 
 export interface NtfyTestResult {

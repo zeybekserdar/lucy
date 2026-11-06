@@ -66,7 +66,10 @@ func (c Composer) click(id string) string {
 
 func (c Composer) Test() store.Notification {
 	p := c.phrases()
-	return store.Notification{Title: p.testTitle, Message: p.testBody, Priority: 3, Tags: []string{"white_check_mark"}}
+	return store.Notification{
+		Title: p.testTitle, Message: p.testBody, Priority: 3, Tags: []string{"white_check_mark"},
+		Click: c.PublicURL, // the test also proves the address opens on the phone
+	}
 }
 
 func (c Composer) Down(id, name, url, failure string) *store.Notification {

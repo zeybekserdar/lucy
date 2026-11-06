@@ -28,8 +28,10 @@ func (s *Server) exportBackup(w http.ResponseWriter, r *http.Request) {
 	for _, m := range monitors {
 		backup.Monitors = append(backup.Monitors, m.Config)
 	}
-	if settings.Topic != "" {
-		backup.Notifications = &yamlio.Notifications{Server: settings.Server, Topic: settings.Topic}
+	if settings.Topic != "" || settings.PublicURL != "" {
+		backup.Notifications = &yamlio.Notifications{
+			Server: settings.Server, Topic: settings.Topic, PublicURL: settings.PublicURL,
+		}
 	}
 	data, err := yamlio.Encode(backup)
 	if err != nil {
@@ -111,15 +113,20 @@ func (s *Server) planImport(ctx context.Context, backup yamlio.Backup) (importin
 		existing = append(existing, m.Config)
 	}
 	result := importing{plan: yamlio.NewPlan(existing, backup.Monitors)}
-	if incoming := backup.Notifications; incoming != nil && incoming.Topic != "" {
+	if incoming := backup.Notifications; incoming != nil {
 		current, err := s.Store.Ntfy(ctx)
 		if err != nil {
 			return importing{}, err
 		}
 		next := current // the token is never in the file, so the current one stays
-		next.Topic = incoming.Topic
+		if incoming.Topic != "" {
+			next.Topic = incoming.Topic
+		}
 		if incoming.Server != "" {
 			next.Server = incoming.Server
+		}
+		if incoming.PublicURL != "" {
+			next.PublicURL = incoming.PublicURL
 		}
 		if next != current {
 			result.settings = &next

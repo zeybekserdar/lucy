@@ -113,7 +113,7 @@ func TestHealthyCertificateStaysQuiet(t *testing.T) {
 	}
 }
 
-func TestCertificateNearThirtyDaysNotifiesWithoutWarning(t *testing.T) {
+func TestCertificateAboutToRenewStaysQuiet(t *testing.T) {
 	r := newRig(t)
 	url, check := tlsService(t, 25*24*time.Hour)
 	r.sched.Checker = check
@@ -123,7 +123,7 @@ func TestCertificateNearThirtyDaysNotifiesWithoutWarning(t *testing.T) {
 	if got := r.view(id); got.Status != "up" {
 		t.Fatalf("status = %s", got.Status)
 	}
-	if titles := r.sent.titles(); len(titles) != 1 {
+	if titles := r.sent.titles(); len(titles) != 0 {
 		t.Fatalf("%v", titles)
 	}
 }

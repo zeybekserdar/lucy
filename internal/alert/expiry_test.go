@@ -29,7 +29,7 @@ func TestWarningsFireOncePerThreshold(t *testing.T) {
 			sent = append(sent, days)
 		}
 	}
-	want := []int{30, 14, 7, 0}
+	want := []int{14, 7, 0}
 	if len(sent) != len(want) {
 		t.Fatalf("sent = %v", sent)
 	}

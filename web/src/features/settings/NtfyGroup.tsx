@@ -14,7 +14,7 @@ type Note = { ok: boolean; text: string }
 export function NtfyGroup() {
   const { t, i18n } = useTranslation()
   const [saved, setSaved] = useState<NtfySettings | null>(null)
-  const [draft, setDraft] = useState<NtfySettings>({ server: '', topic: '', token: '' })
+  const [draft, setDraft] = useState<NtfySettings>({ server: '', topic: '', token: '', publicUrl: '' })
   const [loadFailed, setLoadFailed] = useState(false)
   const [showToken, setShowToken] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -164,6 +164,31 @@ export function NtfyGroup() {
               {t(showToken ? 'ntfy.hide' : 'ntfy.show')}
             </button>
           </span>
+        </div>
+        <div className={styles.fieldRow}>
+          <label htmlFor="public-url" className={styles.fieldLabel}>
+            {t('ntfy.publicUrl')}
+            <span className={styles.optional}> · {t('editor.optional')}</span>
+          </label>
+          <span className={styles.fieldControl}>
+            <input
+              id="public-url"
+              className={styles.input}
+              value={draft.publicUrl}
+              disabled={!saved}
+              inputMode="url"
+              placeholder="http://192.168.1.10:8080"
+              autoComplete="off"
+              spellCheck={false}
+              aria-invalid={errors.publicUrl ? true : undefined}
+              onChange={(event) => change('publicUrl', event.target.value)}
+            />
+          </span>
+          {errors.publicUrl ? (
+            <FieldError>{errorText('publicUrl')}</FieldError>
+          ) : (
+            <p className={styles.fieldNote}>{t('ntfy.publicUrlHint')}</p>
+          )}
         </div>
         <div className={styles.actions}>
           <Button className={styles.surfaceButton} onClick={() => void test()} disabled={!saved || busy !== null}>

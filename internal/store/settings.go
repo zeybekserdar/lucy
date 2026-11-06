@@ -12,13 +12,16 @@ const (
 	keyNtfyServer = "ntfy_server"
 	keyNtfyTopic  = "ntfy_topic"
 	keyNtfyToken  = "ntfy_token"
+	keyPublicURL  = "public_url"
 )
 
 // NtfySettings says where notifications go. An empty topic turns them off.
+// PublicURL is where tapping one leads, as seen from the phone.
 type NtfySettings struct {
-	Server string
-	Topic  string
-	Token  string
+	Server    string
+	Topic     string
+	Token     string
+	PublicURL string
 }
 
 func (s *Store) setting(ctx context.Context, key string) (string, bool, error) {
@@ -32,8 +35,8 @@ func (s *Store) setting(ctx context.Context, key string) (string, bool, error) {
 
 func (s *Store) Ntfy(ctx context.Context) (NtfySettings, error) {
 	settings := NtfySettings{Server: DefaultNtfyServer}
-	rows, err := s.db.QueryContext(ctx, `SELECT key, value FROM settings WHERE key IN (?, ?, ?)`,
-		keyNtfyServer, keyNtfyTopic, keyNtfyToken)
+	rows, err := s.db.QueryContext(ctx, `SELECT key, value FROM settings WHERE key IN (?, ?, ?, ?)`,
+		keyNtfyServer, keyNtfyTopic, keyNtfyToken, keyPublicURL)
 	if err != nil {
 		return settings, err
 	}
@@ -50,6 +53,8 @@ func (s *Store) Ntfy(ctx context.Context) (NtfySettings, error) {
 			settings.Topic = value
 		case keyNtfyToken:
 			settings.Token = value
+		case keyPublicURL:
+			settings.PublicURL = value
 		}
 	}
 	return settings, rows.Err()
@@ -61,7 +66,8 @@ func (s *Store) SaveNtfy(ctx context.Context, n NtfySettings) error {
 		return err
 	}
 	defer tx.Rollback()
-	for key, value := range map[string]string{keyNtfyServer: n.Server, keyNtfyTopic: n.Topic, keyNtfyToken: n.Token} {
+	values := map[string]string{keyNtfyServer: n.Server, keyNtfyTopic: n.Topic, keyNtfyToken: n.Token, keyPublicURL: n.PublicURL}
+	for key, value := range values {
 		if _, err := tx.ExecContext(ctx, `INSERT INTO settings (key, value) VALUES (?, ?)
 			ON CONFLICT (key) DO UPDATE SET value = excluded.value`, key, value); err != nil {
 			return err

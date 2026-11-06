@@ -22,9 +22,10 @@ type Scheduler struct {
 	Store    *store.Store
 	Checker  *checker.Checker
 	Guard    *checker.Guard
-	Composer *notify.Composer           // nil turns notifications off
-	Enabled  func(context.Context) bool // nil means always, otherwise asked before each message
-	Domains  DomainLookup               // nil turns domain checks off
+	Composer *notify.Composer             // nil turns notifications off
+	Enabled  func(context.Context) bool   // nil means always, otherwise asked before each message
+	Link     func(context.Context) string // nil or empty keeps the Composer's own address
+	Domains  DomainLookup                 // nil turns domain checks off
 	Log      *slog.Logger
 
 	slots chan struct{}
@@ -151,12 +152,12 @@ func (s *Scheduler) Run(ctx context.Context, cfg model.Config) (checker.Result, 
 		ms := result.ResponseMs
 		record.ResponseMs = &ms
 	}
-	if s.notifying(ctx) {
+	if composer := s.composer(ctx); composer != nil {
 		switch event {
 		case alert.Down:
-			record.Notification = s.Composer.Down(cfg.ID, cfg.Name, cfg.URL, result.Failure())
+			record.Notification = composer.Down(cfg.ID, cfg.Name, cfg.URL, result.Failure())
 		case alert.Recovered:
-			record.Notification = s.Composer.Recovered(cfg.ID, cfg.Name, result.At.Sub(current.Since))
+			record.Notification = composer.Recovered(cfg.ID, cfg.Name, result.At.Sub(current.Since))
 		}
 	}
 	if err := s.Store.Apply(ctx, record); err != nil {
@@ -171,8 +172,18 @@ func (s *Scheduler) Run(ctx context.Context, cfg model.Config) (checker.Result, 
 	return result, s.warnExpiry(ctx, cfg, "ssl", expires, current.SSLStage)
 }
 
-func (s *Scheduler) notifying(ctx context.Context) bool {
-	return s.Composer != nil && (s.Enabled == nil || s.Enabled(ctx))
+// composer is nil while notifications are off.
+func (s *Scheduler) composer(ctx context.Context) *notify.Composer {
+	if s.Composer == nil || (s.Enabled != nil && !s.Enabled(ctx)) {
+		return nil
+	}
+	composer := *s.Composer
+	if s.Link != nil {
+		if link := s.Link(ctx); link != "" {
+			composer.PublicURL = link
+		}
+	}
+	return &composer
 }
 
 // warnExpiry sends a stage's warning once and keeps the stage current.
@@ -187,8 +198,8 @@ func (s *Scheduler) warnExpiry(ctx context.Context, cfg model.Config, kind strin
 		return nil
 	}
 	var message *store.Notification
-	if notifyNow && s.notifying(ctx) {
-		message = s.Composer.Expiry(cfg.ID, cfg.Name, kind, days, expires)
+	if composer := s.composer(ctx); notifyNow && composer != nil {
+		message = composer.Expiry(cfg.ID, cfg.Name, kind, days, expires)
 	}
 	return s.Store.SaveExpiryStage(ctx, cfg.ID, kind, next, message, now)
 }

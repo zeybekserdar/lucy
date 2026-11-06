@@ -84,6 +84,8 @@ export const tr = {
     generate: 'Rastgele konu üret',
     subscribeHint: 'Kaydettikten sonra telefondaki ntfy uygulamasında bu konuya abone ol; eski konuya bildirim gelmez.',
     token: 'Erişim token’ı',
+    publicUrl: 'Lucy adresi',
+    publicUrlHint: 'Bildirime dokununca telefonda açılır. Telefonun ulaşabildiği bir adres olmalı; localhost çalışmaz.',
     tokenNone: 'Yok',
     show: 'Göster',
     hide: 'Gizle',
@@ -98,7 +100,7 @@ export const tr = {
     unreachable: 'ntfy sunucusuna ulaşılamadı.',
     failed: 'Test gönderilemedi. Tekrar dene.',
     about:
-      'Kesinti başladığında ve bittiğinde, SSL sertifikası ya da alan adı bitmeden 30, 14 ve 7 gün önce bildirim gönderilir. İnternet kesikken bildirim kuyruğa alınır. Konu boşsa bildirim gönderilmez.',
+      'Kesinti başladığında ve bittiğinde, SSL sertifikası ya da alan adı bitmeden 14 ve 7 gün önce bildirim gönderilir. İnternet kesikken bildirim kuyruğa alınır. Konu boşsa bildirim gönderilmez.',
     error: {
       url_scheme: 'Adres http:// veya https:// ile başlamalı.',
       topic: 'Yalnızca harf, rakam, - ve _ kullan; en çok 64 karakter.',
@@ -122,7 +124,7 @@ export const tr = {
     update_other: '{{count}} monitör güncellenecek: {{names}}',
     unchanged_one: '{{count}} monitör aynı, değişmeyecek',
     unchanged_other: '{{count}} monitör aynı, değişmeyecek',
-    notifications: 'Bildirim sunucusu ve konusu değişecek; token korunur',
+    notifications: 'Bildirim ayarları değişecek; token korunur',
     nothing: 'Bu dosya bir değişiklik getirmiyor.',
     invalid: '{{name}} · sorunlu alan: {{fields}}',
     invalidHint: 'Sorunlar düzeltilmeden hiçbir şey içe aktarılmaz.',

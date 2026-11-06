@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	"testing"
 
 	"lucy/internal/model"
+	"lucy/internal/notify"
 )
 
 func fakeNtfy(t *testing.T, status int) (*httptest.Server, *atomic.Pointer[map[string]any], *atomic.Pointer[string]) {
@@ -211,5 +213,49 @@ func TestSettingsNeedASession(t *testing.T) {
 		if code := r.call(route[0], route[1], struct{}{}, nil); code != http.StatusUnauthorized {
 			t.Errorf("%s: %d", route[1], code)
 		}
+	}
+}
+
+func TestPublicAddressReachesNotificationsWithoutARestart(t *testing.T) {
+	r := newRig(t)
+	r.sched.Link = notify.Live{Store: r.sched.Store}.PublicURL
+	url, healthy := flaky(t)
+	id := r.add(model.Config{Name: "a", URL: url, AlertThreshold: 1})
+
+	saved := ntfyView{Server: "https://n.test", PublicURL: " http://192.168.1.9:8080/ "}
+	if code := r.call("PUT", "/api/settings/ntfy", saved, nil); code != http.StatusNoContent {
+		t.Fatalf("save: %d", code)
+	}
+	healthy.Store(false)
+	r.check(id, 1)
+	r.worker.Flush(context.Background())
+
+	r.sent.mu.Lock()
+	defer r.sent.mu.Unlock()
+	if len(r.sent.messages) != 1 || r.sent.messages[0]["click"] != "http://192.168.1.9:8080/m/"+id {
+		t.Fatalf("messages: %+v", r.sent.messages)
+	}
+}
+
+func TestPublicAddressIsOptionalButMustBeAnAddress(t *testing.T) {
+	r := newRig(t)
+	if code := r.call("PUT", "/api/settings/ntfy", ntfyView{Server: "https://n.test"}, nil); code != http.StatusNoContent {
+		t.Fatalf("empty: %d", code)
+	}
+	var failure struct {
+		Fields map[string]string `json:"fields"`
+	}
+	code := r.call("PUT", "/api/settings/ntfy", ntfyView{Server: "https://n.test", PublicURL: "192.168.1.9"}, &failure)
+	if code != http.StatusUnprocessableEntity || failure.Fields["publicUrl"] != "url_scheme" {
+		t.Fatalf("%d %+v", code, failure)
+	}
+}
+
+func TestTestNotificationOpensThePublicAddress(t *testing.T) {
+	r := newRig(t)
+	server, body, _ := fakeNtfy(t, http.StatusOK)
+	r.call("POST", "/api/notify/test", ntfyView{Server: server.URL, Topic: "t", PublicURL: "http://192.168.1.9:8080/"}, nil)
+	if (*body.Load())["click"] != "http://192.168.1.9:8080" {
+		t.Fatalf("sent: %+v", *body.Load())
 	}
 }
