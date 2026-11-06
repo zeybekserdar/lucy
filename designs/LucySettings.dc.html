@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="container-type:inline-size;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;font-size:15px;line-height:1.4;min-height:100%;-webkit-font-smoothing:antialiased">
+  <div style="width:calc(100% - 32px);max-width:680px;margin:0 auto;padding:14px 0 40px;display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:center;min-height:36px">
+      <a href="#" style="display:flex;align-items:center;gap:4px;height:36px;padding:0 10px 0 4px;margin-left:-4px;border-radius:999px;color:var(--ink);text-decoration:none;font-weight:500" style-hover="background:var(--hover)" style-focus="outline:2px solid var(--focus);outline-offset:2px"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>Monitörler</a>
+    </div>
+    <h1 style="margin:0 0 8px;font-size:clamp(24px,5cqi,30px);font-weight:650;letter-spacing:-0.02em">Ayarlar</h1>
+
+    <h2 style="margin:12px 4px 0;font-size:13px;font-weight:600;color:var(--ink2)">Bildirimler · ntfy</h2>
+    <section style="background:var(--surface);border-radius:16px;box-shadow:var(--shadow);overflow:hidden">
+      <sc-for list="{{ ntfy }}" as="f" hint-placeholder-count="3">
+        <label style="display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;padding:12px clamp(16px,3cqi,20px);border-top:{{ f.border }}">
+          <span style="flex:1 1 150px;font-weight:500">{{ f.label }}</span>
+          <span style="flex:2 1 260px;display:flex;align-items:center;gap:6px;min-width:0">
+            <input value="{{ f.value }}" readOnly="{{ true }}" type="{{ f.type }}" style="flex:1;min-width:0;height:38px;padding:0 10px;border-radius:9px;border:1px solid var(--sep-strong);background:var(--surface);color:var(--ink);font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:13px;outline:none" style-focus="border-color:var(--focus);box-shadow:0 0 0 3px color-mix(in oklch, var(--focus) 30%, transparent)"></input>
+            <sc-if value="{{ f.secret }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ toggleToken }}" style="flex:none;height:32px;padding:0 10px;border:0;border-radius:999px;background:var(--hover);color:var(--ink);font:inherit;font-size:13px;font-weight:500;cursor:pointer" style-focus="outline:2px solid var(--focus)">{{ tokenBtn }}</button></sc-if>
+          </span>
+        </label>
+      </sc-for>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:12px clamp(16px,3cqi,20px);border-top:1px solid var(--sep)">
+        <button type="button" onClick="{{ sendTest }}" style="height:34px;padding:0 14px;border:1px solid var(--sep-strong);border-radius:999px;background:var(--surface);color:var(--ink);font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:var(--hover)" style-focus="outline:2px solid var(--focus);outline-offset:2px">Test bildirimi gönder</button>
+        <sc-if value="{{ sent }}" hint-placeholder-val="{{ true }}"><span role="status" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ok-ink)"><svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="M5.8 10.4l2.8 2.8 5.6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>Gönderildi · ntfy 200 döndü, 14:20</span></sc-if>
+      </div>
+    </section>
+    <p style="margin:0 4px;font-size:13px;color:var(--ink2);text-wrap:pretty">Kesinti başladığında ve bittiğinde, SSL sertifikası ya da alan adı süresi 14 günün altına düştüğünde bildirim gönderilir. İnternet kesikken bildirim kuyruğa alınır.</p>
+
+    <h2 style="margin:16px 4px 0;font-size:13px;font-weight:600;color:var(--ink2)">Görünüm</h2>
+    <section style="background:var(--surface);border-radius:16px;box-shadow:var(--shadow);overflow:hidden">
+      <sc-for list="{{ appearance }}" as="g" hint-placeholder-count="2">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:12px clamp(16px,3cqi,20px);border-top:{{ g.border }}">
+          <span id="{{ g.id }}" style="flex:1 1 150px;font-weight:500">{{ g.label }}</span>
+          <div role="radiogroup" aria-labelledby="{{ g.id }}" style="display:flex;gap:2px;padding:2px;border-radius:10px;background:var(--hover)">
+            <sc-for list="{{ g.opts }}" as="o" hint-placeholder-count="3"><button type="button" role="radio" aria-checked="{{ o.on }}" onClick="{{ o.pick }}" style="height:30px;padding:0 12px;border:0;border-radius:8px;background:{{ o.bg }};box-shadow:{{ o.sh }};color:var(--ink);font:inherit;font-size:14px;font-weight:{{ o.fw }};cursor:pointer" style-focus="outline:2px solid var(--focus);outline-offset:1px">{{ o.label }}</button></sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </section>
+
+    <h2 style="margin:16px 4px 0;font-size:13px;font-weight:600;color:var(--ink2)">Yedekleme</h2>
+    <section style="background:var(--surface);border-radius:16px;box-shadow:var(--shadow);overflow:hidden">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:12px clamp(16px,3cqi,20px)">
+        <div style="flex:1 1 240px;min-width:0"><div style="font-weight:500">YAML olarak dışa aktar</div><div style="font-size:13px;color:var(--ink2)">7 monitör ve bildirim ayarları · token dahil edilmez</div></div>
+        <button type="button" style="height:34px;padding:0 14px;border:1px solid var(--sep-strong);border-radius:999px;background:var(--surface);color:var(--ink);font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:var(--hover)" style-focus="outline:2px solid var(--focus);outline-offset:2px">Dışa aktar</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:12px clamp(16px,3cqi,20px);border-top:1px solid var(--sep)">
+        <div style="flex:1 1 240px;min-width:0"><div style="font-weight:500">YAML’dan içe aktar</div><div style="font-size:13px;color:var(--ink2);text-wrap:pretty">Aynı adresli monitörler güncellenir, diğerleri eklenir. Önce bir önizleme gösterilir.</div></div>
+        <button type="button" style="height:34px;padding:0 14px;border:1px solid var(--sep-strong);border-radius:999px;background:var(--surface);color:var(--ink);font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:var(--hover)" style-focus="outline:2px solid var(--focus);outline-offset:2px">Dosya seç…</button>
+      </div>
+    </section>
+
+    <h2 style="margin:16px 4px 0;font-size:13px;font-weight:600;color:var(--ink2)">Güvenlik</h2>
+    <section style="background:var(--surface);border-radius:16px;box-shadow:var(--shadow);overflow:hidden">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:12px clamp(16px,3cqi,20px)">
+        <div style="flex:1 1 240px;min-width:0"><div style="font-weight:500">Şifre</div><div style="font-size:13px;color:var(--ink2)">Son değişiklik 3 ay önce</div></div>
+        <button type="button" aria-expanded="{{ pwOpen }}" onClick="{{ togglePw }}" style="height:34px;padding:0 14px;border:1px solid var(--sep-strong);border-radius:999px;background:var(--surface);color:var(--ink);font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:var(--hover)" style-focus="outline:2px solid var(--focus);outline-offset:2px">{{ pwBtn }}</button>
+      </div>
+      <sc-if value="{{ pwOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:12px;padding:4px clamp(16px,3cqi,20px) 16px">
+          <sc-for list="{{ pwFields }}" as="p" hint-placeholder-count="3">
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:550">{{ p }}</span><input type="password" readOnly="{{ true }}" style="height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--sep-strong);background:var(--surface);color:var(--ink);font:inherit;outline:none" style-focus="border-color:var(--focus);box-shadow:0 0 0 3px color-mix(in oklch, var(--focus) 30%, transparent)"></input></label>
+          </sc-for>
+          <button type="button" style="align-self:flex-start;height:36px;padding:0 18px;border:0;border-radius:999px;background:var(--accent);color:var(--accent-ink);font:inherit;font-size:14px;font-weight:600;cursor:pointer" style-focus="outline:2px solid var(--focus);outline-offset:2px">Şifreyi güncelle</button>
+        </div>
+      </sc-if>
+      <div style="display:flex;align-items:center;gap:16px;padding:12px clamp(16px,3cqi,20px);border-top:1px solid var(--sep)">
+        <span style="flex:1;font-weight:500">Oturumu kapat</span>
+        <button type="button" style="height:34px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--down-ink);font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:var(--hover)" style-focus="outline:2px solid var(--focus);outline-offset:2px">Çıkış yap</button>
+      </div>
+    </section>
+    <p style="margin:16px 4px 0;font-size:12px;color:var(--ink2)">Lucy 1.0.0 · nas.home:3001</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1040,&quot;height&quot;:1000},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Sistem&quot;,&quot;Açık&quot;,&quot;Koyu&quot;],&quot;default&quot;:&quot;Sistem&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { show: false, sent: true, pw: false, lang: 'Türkçe', theme: null };
+  renderVals() {
+    const s = this.state;
+    const theme = s.theme ?? this.props.theme ?? 'Sistem';
+    const seg = (opts, cur, key) => opts.map(label => ({ label, on: label === cur, bg: label === cur ? 'var(--surface)' : 'transparent', sh: label === cur ? '0 1px 2px oklch(0 0 0 / 0.14)' : 'none', fw: label === cur ? 600 : 500, pick: () => this.setState({ [key]: label }) }));
+    return {
+      ntfy: [
+        { label: 'Sunucu adresi', value: 'https://ntfy.sh', type: 'text' },
+        { label: 'Konu', value: 'lucy-ev-7f3k', type: 'text' },
+        { label: 'Erişim token’ı', value: s.show ? 'tk_8hq2m4zv0c1xw9n3f9a' : 'tk_•••••••••••••3f9a', type: 'text', secret: true },
+      ].map((f, i) => ({ ...f, secret: !!f.secret, border: i ? '1px solid var(--sep)' : '0' })),
+      tokenBtn: s.show ? 'Gizle' : 'Göster', toggleToken: () => this.setState({ show: !s.show }),
+      sent: s.sent, sendTest: () => this.setState({ sent: true }),
+      appearance: [
+        { id: 'lang-l', label: 'Dil', opts: seg(['Türkçe', 'English'], s.lang, 'lang'), border: '0' },
+        { id: 'theme-l', label: 'Tema', opts: seg(['Sistem', 'Açık', 'Koyu'], theme, 'theme'), border: '1px solid var(--sep)' },
+      ],
+      pwOpen: s.pw, pwBtn: s.pw ? 'Vazgeç' : 'Şifreyi değiştir', togglePw: () => this.setState({ pw: !s.pw }),
+      pwFields: ['Mevcut şifre', 'Yeni şifre', 'Yeni şifre (tekrar)'],
+    };
+  }
+}
+</script>
+</body>
+</html>

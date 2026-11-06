@@ -1,0 +1,9 @@
+.failure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(64px, 14cqi, 140px) 8px 40px;
+  text-align: center;
+}
+.title { font-size: clamp(24px, 4cqi, 30px); font-weight: 650; letter-spacing: -0.02em; }
+.body { max-width: 400px; margin: 10px 0 24px; color: var(--ink2); }

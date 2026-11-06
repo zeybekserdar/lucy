@@ -1,0 +1,124 @@
+/* Lucy design tokens */
+:root {
+  --font-sans: -apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;
+  --font-mono: ui-monospace,'SF Mono',Menlo,monospace;
+  --fs-display: clamp(24px, 4.2cqi, 34px);
+  --fs-title: clamp(24px, 5cqi, 30px);
+  --fs-stat: 22px;
+  --fs-headline: 20px;
+  --fs-brand: 17px;
+  --fs-body: 15px;
+  --fs-control: 14px;
+  --fs-meta: 13px;
+  --fs-caption: 12px;
+  --fs-axis: 11px;
+  --lh-body: 1.4;
+  --sp-2: 2px;
+  --sp-4: 4px;
+  --sp-6: 6px;
+  --sp-8: 8px;
+  --sp-12: 12px;
+  --sp-16: 16px;
+  --sp-20: 20px;
+  --sp-24: 24px;
+  --sp-32: 32px;
+  --sp-48: 48px;
+  --sp-64: 64px;
+  --r-bar: 1.5px;
+  --r-sm: 8px;
+  --r-md: 10px;
+  --r-lg: 12px;
+  --r-card: 16px;
+  --r-xl: 18px;
+  --r-pill: 999px;
+  --dur-fast: 150ms;
+  --dur-base: 180ms;
+  --dur-panel: 220ms;
+  --ease-panel: cubic-bezier(.2,.8,.2,1);
+}
+
+:root, [data-theme="light"] {
+  --bg: oklch(0.975 0.002 250);
+  --surface: #fff;
+  --ink: oklch(0.22 0.006 250);
+  --ink2: oklch(0.47 0.01 250);
+  --sep: oklch(0.92 0.003 250);
+  --hover: oklch(0.965 0.003 250);
+  --ok: oklch(0.62 0.15 152);
+  --ok-ink: oklch(0.5 0.13 152);
+  --warn: oklch(0.8 0.15 78);
+  --warn-ink: oklch(0.5 0.12 62);
+  --on-warn: oklch(0.28 0.05 60);
+  --down: oklch(0.58 0.2 25);
+  --down-ink: oklch(0.5 0.18 25);
+  --down-tint: oklch(0.97 0.018 25);
+  --unk: oklch(0.58 0.012 250);
+  --unk-ink: oklch(0.47 0.012 250);
+  --none: oklch(0.86 0.004 250);
+  --on-status: #fff;
+  --accent: oklch(0.22 0.006 250);
+  --accent-ink: #fff;
+  --focus: oklch(0.58 0.16 250);
+  --shadow: 0 1px 2px oklch(0 0 0 / 0.04),0 6px 24px oklch(0 0 0 / 0.05);
+  --sep-strong: oklch(0.84 0.004 250);
+  --ok-tint: oklch(0.96 0.03 152);
+  --warn-tint: oklch(0.96 0.04 85);
+}
+
+[data-theme="dark"] {
+  --bg: oklch(0.145 0.004 270);
+  --surface: oklch(0.19 0.005 270);
+  --ink: oklch(0.96 0.003 270);
+  --ink2: oklch(0.72 0.01 270);
+  --sep: oklch(0.26 0.006 270);
+  --hover: oklch(0.22 0.006 270);
+  --ok: oklch(0.72 0.15 152);
+  --ok-ink: oklch(0.78 0.14 152);
+  --warn: oklch(0.8 0.14 78);
+  --warn-ink: oklch(0.84 0.13 78);
+  --on-warn: oklch(0.25 0.05 60);
+  --down: oklch(0.66 0.19 25);
+  --down-ink: oklch(0.76 0.15 25);
+  --down-tint: oklch(0.22 0.035 25);
+  --unk: oklch(0.6 0.01 270);
+  --unk-ink: oklch(0.74 0.01 270);
+  --none: oklch(0.3 0.006 270);
+  --on-status: oklch(0.16 0.004 270);
+  --accent: oklch(0.96 0.003 270);
+  --accent-ink: oklch(0.16 0.004 270);
+  --focus: oklch(0.74 0.13 250);
+  --shadow: 0 0 0 1px oklch(1 0 0 / 0.05);
+  --sep-strong: oklch(0.36 0.006 270);
+  --ok-tint: oklch(0.25 0.04 152);
+  --warn-tint: oklch(0.26 0.04 78);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: oklch(0.145 0.004 270);
+    --surface: oklch(0.19 0.005 270);
+    --ink: oklch(0.96 0.003 270);
+    --ink2: oklch(0.72 0.01 270);
+    --sep: oklch(0.26 0.006 270);
+    --hover: oklch(0.22 0.006 270);
+    --ok: oklch(0.72 0.15 152);
+    --ok-ink: oklch(0.78 0.14 152);
+    --warn: oklch(0.8 0.14 78);
+    --warn-ink: oklch(0.84 0.13 78);
+    --on-warn: oklch(0.25 0.05 60);
+    --down: oklch(0.66 0.19 25);
+    --down-ink: oklch(0.76 0.15 25);
+    --down-tint: oklch(0.22 0.035 25);
+    --unk: oklch(0.6 0.01 270);
+    --unk-ink: oklch(0.74 0.01 270);
+    --none: oklch(0.3 0.006 270);
+    --on-status: oklch(0.16 0.004 270);
+    --accent: oklch(0.96 0.003 270);
+    --accent-ink: oklch(0.16 0.004 270);
+    --focus: oklch(0.74 0.13 250);
+    --shadow: 0 0 0 1px oklch(1 0 0 / 0.05);
+    --sep-strong: oklch(0.36 0.006 270);
+    --ok-tint: oklch(0.25 0.04 152);
+    --warn-tint: oklch(0.26 0.04 78);
+  }
+}

@@ -1,0 +1,25 @@
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px clamp(16px, 3cqi, 22px);
+  border: 0;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur-fast);
+}
+.trigger:hover { background: var(--hover); }
+.text { flex: 1; min-width: 0; }
+.title { display: block; font-weight: 600; }
+.summary { display: block; font-size: var(--fs-meta); color: var(--ink2); text-wrap: pretty; }
+.chevron { flex: none; transition: transform var(--dur-base) ease; }
+.open { transform: rotate(90deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron { transition: none; }
+}

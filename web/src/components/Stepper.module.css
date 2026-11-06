@@ -1,0 +1,22 @@
+.stepper {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid var(--sep-strong);
+  border-radius: var(--r-md);
+}
+.step {
+  width: 38px;
+  height: 38px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 18px;
+  cursor: pointer;
+  transition: background var(--dur-fast);
+}
+.step:hover:not(:disabled) { background: var(--hover); }
+.step:disabled { color: var(--ink2); opacity: .5; cursor: default; }
+.step:focus-visible { outline-offset: -2px; }
+.value { min-width: 32px; text-align: center; font-weight: 600; }

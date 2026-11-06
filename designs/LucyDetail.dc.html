@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="container-type:inline-size;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',system-ui,sans-serif;font-size:15px;line-height:1.4;min-height:100%;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased">
+  <div style="width:calc(100% - 32px);max-width:720px;margin:0 auto;padding:14px 0 40px;display:flex;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:center;gap:6px;min-height:36px">
+      <sc-if value="{{ isPage }}" hint-placeholder-val="{{ false }}">
+        <a href="#" style="display:flex;align-items:center;gap:4px;height:36px;padding:0 10px 0 4px;margin-left:-4px;border-radius:999px;color:var(--ink);text-decoration:none;font-size:15px;font-weight:500" style-hover="background:var(--hover)" style-focus="outline:2px solid var(--focus);outline-offset:2px"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>Monitörler</a>
+      </sc-if>
+      <div style="flex:1"></div>
+      <button style="height:34px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--ink);font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:var(--hover)" style-focus="outline:2px solid var(--focus);outline-offset:2px">Düzenle</button>
+      <sc-if value="{{ isPanel }}" hint-placeholder-val="{{ true }}">
+        <button aria-label="Kapat" style="width:34px;height:34px;display:flex;align-items:center;justify-content:center;border:0;border-radius:999px;background:var(--hover);color:var(--ink);cursor:pointer" style-focus="outline:2px solid var(--focus);outline-offset:2px"><svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5 5 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path></svg></button>
+      </sc-if>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div>
+        <h1 style="margin:0;font-size:clamp(24px,5cqi,30px);line-height:1.15;font-weight:650;letter-spacing:-0.02em;overflow-wrap:anywhere">{{ m.name }}</h1>
+        <div style="margin-top:3px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:13px;color:var(--ink2);overflow-wrap:anywhere">{{ m.url }}</div>
+      </div>
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px">
+        <span style="display:inline-flex;align-items:center;gap:7px;font-weight:600;color:{{ m.stColor }}"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="{{ m.stFill }}"></circle><path d="{{ m.stGlyph }}" fill="none" stroke="var(--on-status)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>{{ m.stText }}</span>
+        <span style="color:var(--ink2);font-size:14px">{{ m.stMeta }}</span>
+        <span style="flex:1"></span>
+        <button style="height:32px;padding:0 14px;border:1px solid var(--sep-strong);border-radius:999px;background:var(--surface);color:var(--ink);font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:var(--hover)" style-focus="outline:2px solid var(--focus);outline-offset:2px">Şimdi kontrol et</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:var(--surface);border-radius:16px;box-shadow:var(--shadow);overflow:hidden">
+      <sc-for list="{{ m.uptime }}" as="u" hint-placeholder-count="3">
+        <div style="padding:14px 16px;border-left:{{ u.border }}">
+          <div style="font-size:12px;color:var(--ink2)">{{ u.label }}</div>
+          <div style="font-size:clamp(18px,4cqi,22px);font-weight:600;letter-spacing:-0.01em;color:{{ u.color }}">{{ u.value }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <section style="background:var(--surface);border-radius:16px;box-shadow:var(--shadow);padding:16px clamp(14px,3cqi,20px) 14px">
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin-bottom:14px">
+        <h2 style="margin:0;font-size:15px;font-weight:600">Yanıt süresi</h2>
+        <span style="font-size:13px;color:var(--ink2)">{{ avg }}</span>
+        <span style="flex:1"></span>
+        <div role="group" aria-label="Zaman aralığı" style="display:flex;gap:2px;padding:2px;border-radius:9px;background:var(--hover)">
+          <sc-for list="{{ ranges }}" as="r" hint-placeholder-count="3">
+            <button aria-pressed="{{ r.on }}" onClick="{{ r.pick }}" style="height:28px;padding:0 10px;border:0;border-radius:7px;background:{{ r.bg }};box-shadow:{{ r.sh }};color:var(--ink);font:inherit;font-size:13px;font-weight:{{ r.fw }};cursor:pointer" style-focus="outline:2px solid var(--focus);outline-offset:1px">{{ r.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:auto minmax(0,1fr);gap:0 8px">
+        <div style="display:flex;flex-direction:column;justify-content:space-between;height:170px;font-size:11px;color:var(--ink2);text-align:right;padding:0 0 0 0"><span style="transform:translateY(-6px)">{{ yMax }}</span><span>{{ yMid }}</span><span style="transform:translateY(6px)">0</span></div>
+        <div style="position:relative;height:170px;border-bottom:1px solid var(--sep-strong)">
+          <div style="position:absolute;left:0;right:0;top:0;border-top:1px dashed var(--sep)"></div>
+          <div style="position:absolute;left:0;right:0;top:50%;border-top:1px dashed var(--sep)"></div>
+          <sc-for list="{{ bands }}" as="b" hint-placeholder-count="2">
+            <div title="{{ b.title }}" style="position:absolute;top:0;bottom:0;left:{{ b.left }};width:{{ b.width }};background:{{ b.bg }};border-top:{{ b.top }}">
+              <sc-if value="{{ b.showLabel }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:6px;left:{{ b.l }};right:{{ b.r }};white-space:nowrap;font-size:11px;font-weight:600;color:{{ b.ink }};background:var(--surface);padding:1px 5px;border-radius:4px">{{ b.label }}</span></sc-if>
+            </div>
+          </sc-for>
+          <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible">
+            <path d="{{ area }}" fill="var(--ink)" fill-opacity="0.06"></path>
+            <path d="{{ line }}" fill="none" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>
+          </svg>
+        </div>
+        <span></span>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--ink2)"><sc-for list="{{ xLabels }}" as="x" hint-placeholder-count="5"><span>{{ x }}</span></sc-for></div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:12px;font-size:12px;color:var(--ink2)">
+        <span style="display:flex;align-items:center;gap:6px"><span style="width:14px;height:2px;background:var(--ink);border-radius:1px"></span>Yanıt süresi</span>
+        <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:2px;background:color-mix(in oklch, var(--down) 20%, transparent);border-top:2px solid var(--down);box-sizing:border-box"></span>Kesinti</span>
+        <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:2px;background:repeating-linear-gradient(135deg, var(--sep-strong) 0 1.5px, transparent 1.5px 4px);box-shadow:inset 0 0 0 1px var(--sep-strong)"></span>Veri yok · Lucy kapalıydı, kesinti sayılmaz</span>
+      </div>
+    </section>
+
+    <section style="background:var(--surface);border-radius:16px;box-shadow:var(--shadow);overflow:hidden">
+      <h2 style="margin:0;padding:14px clamp(14px,3cqi,20px) 10px;font-size:15px;font-weight:600">Son kontrol</h2>
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px 12px;padding:0 clamp(14px,3cqi,20px) 12px">
+        <span style="font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:14px;font-weight:600;color:{{ m.stColor }}">{{ m.check.code }}</span>
+        <span style="font-size:13px;color:var(--ink2)">{{ m.check.meta }}</span>
+      </div>
+      <sc-for list="{{ m.check.conds }}" as="c" hint-placeholder-count="3">
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:11px clamp(14px,3cqi,20px);border-top:1px solid var(--sep)">
+          <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true" style="flex:none;margin-top:1px"><path d="{{ c.glyph }}" fill="none" stroke="{{ c.color }}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          <div style="flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:2px 12px">
+            <span style="flex:1 1 140px;font-weight:500">{{ c.name }}</span>
+            <span style="flex:1 1 160px;font-size:13px;color:var(--ink2)">Beklenen: {{ c.expect }}</span>
+            <span style="flex:0 1 auto;font-size:13px;font-weight:550;color:{{ c.color }}">{{ c.result }}</span>
+          </div>
+        </div>
+      </sc-for>
+    </section>
+
+    <section style="background:var(--surface);border-radius:16px;box-shadow:var(--shadow);overflow:hidden">
+      <h2 style="margin:0;padding:14px clamp(14px,3cqi,20px) 6px;font-size:15px;font-weight:600">Sertifika ve alan adı</h2>
+      <sc-for list="{{ m.expiry }}" as="e" hint-placeholder-count="2">
+        <div style="display:flex;align-items:center;gap:12px;padding:12px clamp(14px,3cqi,20px);border-top:{{ e.border }}">
+          <div style="flex:1;min-width:0"><div style="font-weight:500">{{ e.name }}</div><div style="font-size:13px;color:var(--ink2);text-wrap:pretty">{{ e.sub }}</div></div>
+          <span style="display:inline-flex;align-items:center;gap:6px;flex:none;font-weight:600;color:{{ e.color }}"><svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="{{ e.fill }}"></circle><path d="{{ e.glyph }}" fill="none" stroke="{{ e.stroke }}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>{{ e.value }}</span>
+        </div>
+      </sc-for>
+    </section>
+
+    <section style="background:var(--surface);border-radius:16px;box-shadow:var(--shadow);padding:14px clamp(14px,3cqi,20px) 6px">
+      <h2 style="margin:0 0 12px;font-size:15px;font-weight:600">Olaylar · son 30 gün</h2>
+      <ol style="list-style:none;margin:0;padding:0">
+        <sc-for list="{{ m.events }}" as="ev" hint-placeholder-count="3">
+          <li style="display:grid;grid-template-columns:14px minmax(0,1fr);gap:12px">
+            <div style="display:flex;flex-direction:column;align-items:center">
+              <span style="width:10px;height:10px;margin-top:5px;border-radius:50%;box-sizing:border-box;background:{{ ev.dot }};border:{{ ev.ring }}"></span>
+              <span style="flex:1;width:1px;margin:4px 0;background:{{ ev.rail }}"></span>
+            </div>
+            <div style="padding-bottom:16px;min-width:0">
+              <div style="display:flex;flex-wrap:wrap;gap:2px 8px;align-items:baseline"><span style="font-weight:600;color:{{ ev.ink }}">{{ ev.kind }}</span><span style="font-weight:500">{{ ev.dur }}</span></div>
+              <div style="font-size:13px;color:var(--ink2);text-wrap:pretty">{{ ev.when }} · {{ ev.reason }}</div>
+            </div>
+          </li>
+        </sc-for>
+      </ol>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:520,&quot;height&quot;:1400},&quot;monitor&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;foto&quot;,&quot;api&quot;],&quot;default&quot;:&quot;foto&quot;,&quot;tsType&quot;:&quot;'foto'|'api'&quot;},&quot;layout&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;panel&quot;,&quot;page&quot;],&quot;default&quot;:&quot;panel&quot;,&quot;tsType&quot;:&quot;'panel'|'page'&quot;}}">
+class Component extends DCLogic {
+  state = { range: 168 };
+  renderVals() {
+    const mon = this.props.monitor ?? 'foto';
+    const page = (this.props.layout ?? 'panel') === 'page';
+    const G = { check: 'M5.8 10.4l2.8 2.8 5.6-6', x: 'M7 7l6 6M13 7l-6 6', bang: 'M10 5.6v5.2M10 14.3v.1', q: 'M7.9 7.7a2.2 2.2 0 1 1 3.2 1.9c-.7.4-1.1.8-1.1 1.7M10 14.3v.1' };
+    const okC = { glyph: G.check, color: 'var(--ok-ink)' }, badC = { glyph: G.x, color: 'var(--down-ink)' };
+    const D = {
+      foto: {
+        name: 'foto.home', url: 'https://foto.home/api/server/ping', base: 95,
+        stText: 'Çalışıyor', stMeta: '96 ms · 18 sn önce · her 60 sn', stColor: 'var(--ok-ink)', stFill: 'var(--ok)', stGlyph: G.check,
+        uptime: [['Son 24 saat', '100%'], ['Son 7 gün', '97,50%'], ['Son 30 gün', '99,20%']],
+        events: [
+          { k: 'down', dur: '4 sa 12 dk', when: 'Dün 02:14 – 06:26', reason: 'Bağlantı zaman aşımı (10 sn)' },
+          { k: 'none', dur: '5 sa 35 dk', when: 'Pzt 01:05 – 06:40', reason: 'Lucy kapalıydı, kesinti sayılmadı' },
+          { k: 'down', dur: '1 sa 25 dk', when: '28 Eki 11:40 – 13:05', reason: 'HTTP 502 Bad Gateway' },
+        ],
+        spans: [{ k: 'down', from: 36, to: 31.8 }, { k: 'none', from: 109.2, to: 103.6 }, { k: 'down', from: 218.6, to: 217.2 }],
+        check: { code: '200 OK', meta: '96 ms · bugün 14:16:02', conds: [
+          { name: 'Durum kodu', expect: '200–299', result: '200', ...okC },
+          { name: 'Yanıt süresi', expect: '2000 ms altında', result: '96 ms', ...okC },
+          { name: 'Gövde içeriği', expect: 'içerir “pong”', result: 'Bulundu', ...okC }] },
+        expiry: [
+          { name: 'SSL sertifikası', sub: '7 Oca 2027’de bitiyor · Lucy Ev CA', value: '62 gün', t: 'ok' },
+          { name: 'Alan adı', sub: '.home yerel bir alan adı; WHOIS kaydı olmadığı için süre öğrenilemiyor.', value: 'Bilinmiyor', t: 'unk' }],
+      },
+      api: {
+        name: 'api.app', url: 'https://api.app/health', base: 140,
+        stText: 'Kesinti · 14 dk', stMeta: '14:02’den beri · 14 başarısız kontrol · bildirim gönderildi', stColor: 'var(--down-ink)', stFill: 'var(--down)', stGlyph: G.x,
+        uptime: [['Son 24 saat', '99,03%', 1], ['Son 7 gün', '99,61%'], ['Son 30 gün', '98,71%']],
+        events: [
+          { k: 'down', dur: '14 dk · sürüyor', when: 'Bugün 14:02’den beri', reason: 'HTTP 503 Service Unavailable' },
+          { k: 'down', dur: '1 sa 41 dk', when: 'Sal 22:10 – 23:51', reason: 'HTTP 502 Bad Gateway' },
+          { k: 'none', dur: '2 sa 10 dk', when: '17 Eki 03:00 – 05:10', reason: 'Lucy kapalıydı, kesinti sayılmadı' },
+        ],
+        spans: [{ k: 'down', from: 0.24, to: 0 }, { k: 'down', from: 64.1, to: 62.4 }, { k: 'none', from: 491, to: 488.8 }],
+        check: { code: '503 Service Unavailable', meta: '41 ms · bugün 14:16:08 · 3 koşuldan 2’si sağlanmadı', conds: [
+          { name: 'Durum kodu', expect: '200–299', result: '503', ...badC },
+          { name: 'Yanıt süresi', expect: '1000 ms altında', result: '41 ms', ...okC },
+          { name: 'JSON yolu $.status', expect: '= “ok”', result: 'Yol bulunamadı', ...badC }] },
+        expiry: [
+          { name: 'SSL sertifikası', sub: '17 Ara 2026’da bitiyor · Let’s Encrypt', value: '41 gün', t: 'ok' },
+          { name: 'Alan adı', sub: '8 Haz 2027’de bitiyor', value: '214 gün', t: 'ok' }],
+      },
+    }[mon] || null;
+    const m = D;
+    const R = this.state.range;
+    const n = R === 24 ? 96 : R === 168 ? 168 : 180;
+    const inSpan = (h, k) => m.spans.some(s => s.k === k && h <= s.from && h >= s.to);
+    const val = h => { const b = m.base; let v = b * (1 + 0.16 * Math.sin(h * 0.7) + 0.09 * Math.sin(h * 2.3 + 1) + 0.05 * Math.sin(h * 5.1)); if (Math.floor(h * 3) % 41 === 0) v += b * 0.7; return v; };
+    const yMax = m.base * 2.4;
+    let line = '', area = '', seg = [];
+    const flush = () => { if (seg.length > 1) { line += 'M' + seg.map(p => p.join(' ')).join('L'); area += 'M' + seg[0][0] + ' 100L' + seg.map(p => p.join(' ')).join('L') + 'L' + seg[seg.length - 1][0] + ' 100Z'; } seg = []; };
+    for (let i = 0; i <= n; i++) {
+      const h = R - (i / n) * R;
+      if (inSpan(h, 'down') || inSpan(h, 'none')) { flush(); continue; }
+      seg.push([((i / n) * 1000).toFixed(1), (100 - Math.min(val(h), yMax) / yMax * 100).toFixed(1)]);
+    }
+    flush();
+    const bands = m.spans.filter(s => s.to < R).map(s => {
+      const from = Math.min(s.from, R);
+      const left = (R - from) / R * 100, width = Math.max((from - s.to) / R * 100, 0.9);
+      const down = s.k === 'down';
+      return {
+        left: left + '%', width: width + '%',
+        bg: down ? 'color-mix(in oklch, var(--down) 16%, transparent)' : 'repeating-linear-gradient(135deg, var(--sep-strong) 0 1.5px, transparent 1.5px 6px)',
+        top: down ? '2px solid var(--down)' : '0', ink: down ? 'var(--down-ink)' : 'var(--ink2)',
+        label: down ? 'Kesinti' : 'Veri yok', title: down ? 'Kesinti' : 'Veri yok · Lucy kapalıydı',
+        showLabel: width > 2 || (down && s.to === 0), l: left > 70 ? 'auto' : '4px', r: left > 70 ? '4px' : 'auto',
+      };
+    });
+    const XL = { 24: ['14:00', '20:00', '02:00', '08:00', 'Şimdi'], 168: ['Cum', 'Cmt', 'Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Bugün'], 720: ['7 Eki', '14 Eki', '21 Eki', '28 Eki', 'Bugün'] };
+    const ST = { ok: ['var(--ok-ink)', 'var(--ok)', G.check, 'var(--on-status)'], warn: ['var(--warn-ink)', 'var(--warn)', G.bang, 'var(--on-warn)'], unk: ['var(--unk-ink)', 'var(--unk)', G.q, 'var(--on-status)'] };
+    return {
+      isPage: page, isPanel: !page,
+      m: {
+        ...m,
+        uptime: m.uptime.map(([label, value, bad], i) => ({ label, value, border: i ? '1px solid var(--sep)' : '0', color: bad ? 'var(--down-ink)' : 'var(--ink)' })),
+        expiry: m.expiry.map((e, i) => { const s = ST[e.t]; return { ...e, border: i ? '1px solid var(--sep)' : '1px solid var(--sep)', color: s[0], fill: s[1], glyph: s[2], stroke: s[3] }; }),
+        events: m.events.map((e, i) => ({
+          ...e, kind: e.k === 'down' ? 'Kesinti' : 'Veri yok',
+          ink: e.k === 'down' ? 'var(--down-ink)' : 'var(--ink2)',
+          dot: e.k === 'down' ? 'var(--down)' : 'transparent',
+          ring: e.k === 'down' ? '0' : '1.5px dashed var(--ink2)',
+          rail: i === m.events.length - 1 ? 'transparent' : 'var(--sep)',
+        })),
+      },
+      avg: 'ortalama ' + Math.round(m.base * 1.02) + ' ms',
+      yMax: Math.round(yMax / 10) * 10 + ' ms', yMid: Math.round(yMax / 20) * 10,
+      line, area, bands, xLabels: XL[R],
+      ranges: [[24, '24 sa'], [168, '7 gün'], [720, '30 gün']].map(([v, label]) => ({
+        label, on: v === R, bg: v === R ? 'var(--surface)' : 'transparent', sh: v === R ? '0 1px 2px oklch(0 0 0 / 0.12)' : 'none', fw: v === R ? 600 : 500,
+        pick: () => this.setState({ range: v }),
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>

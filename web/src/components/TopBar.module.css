@@ -1,0 +1,10 @@
+.bar { display: flex; align-items: center; gap: 10px; padding: 18px 0; }
+.brand { display: flex; align-items: center; gap: var(--sp-8); border-radius: var(--r-sm); }
+.brand:focus-visible { outline-offset: 3px; }
+.name { font-size: var(--fs-brand); font-weight: 650; letter-spacing: -0.01em; }
+.spacer { flex: 1; }
+.add { padding: 0 14px; }
+
+@container (max-width: 599px) {
+  .addLabel { display: none; }
+}

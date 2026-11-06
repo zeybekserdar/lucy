@@ -1,0 +1,28 @@
+.back { display: inline-block; margin: 12px 0 24px; color: var(--ink2); }
+.back:hover { color: var(--ink); }
+.note { color: var(--ink2); }
+
+.groupTitle { margin: 0 4px 10px; font-size: var(--fs-meta); font-weight: 600; color: var(--ink2); }
+.group {
+  overflow: hidden;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--sep);
+}
+.row:first-child { border-top: 0; }
+.row > span { flex: 1 1 150px; }
+
+.stack { display: flex; flex-direction: column; gap: 20px; padding-top: 16px; }
+.inline { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+
+.monitorName { font-size: var(--fs-title); font-weight: 650; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.monitorUrl { margin-top: var(--sp-4); font-family: var(--font-mono); font-size: var(--fs-meta); color: var(--ink2); overflow-wrap: anywhere; }
+.danger { color: var(--down-ink); }

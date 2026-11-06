@@ -1,0 +1,11 @@
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  padding: 16px 4px 0;
+  font-size: var(--fs-caption);
+  color: var(--ink2);
+}
+.item { display: flex; align-items: flex-end; gap: var(--sp-6); }
+.swatch { width: 5px; border-radius: var(--r-bar); }
+.label { line-height: 12px; }

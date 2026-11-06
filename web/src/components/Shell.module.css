@@ -1,0 +1,2 @@
+.root { container-type: inline-size; min-height: 100dvh; background: var(--bg); }
+.column { width: calc(100% - 32px); margin: 0 auto; padding-bottom: var(--sp-48); }

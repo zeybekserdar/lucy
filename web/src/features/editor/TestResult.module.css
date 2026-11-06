@@ -1,0 +1,37 @@
+.card {
+  overflow: hidden;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 14px clamp(16px, 3cqi, 22px);
+}
+.passed { background: var(--ok-tint); }
+.failed { background: var(--down-tint); }
+.title { font-weight: 600; }
+.meta { font-size: var(--fs-meta); color: var(--ink2); }
+.request {
+  padding: 10px clamp(16px, 3cqi, 22px);
+  border-bottom: 1px solid var(--sep);
+  font-family: var(--font-mono);
+  font-size: var(--fs-meta);
+  color: var(--ink2);
+  overflow-wrap: anywhere;
+}
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px clamp(16px, 3cqi, 22px);
+  border-top: 1px solid var(--sep);
+}
+.request + .row { border-top: 0; }
+.glyph { flex: none; margin-top: 2px; }
+.rowText { flex: 1; min-width: 0; text-wrap: pretty; overflow-wrap: anywhere; }
+.rowName { font-weight: 500; }
+.rowDetail { font-size: var(--fs-control); color: var(--ink2); }

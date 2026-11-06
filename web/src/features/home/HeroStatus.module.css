@@ -1,0 +1,17 @@
+.hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: clamp(28px, 7cqi, 56px) 0 clamp(20px, 4cqi, 28px);
+}
+.icon { margin-top: 3px; }
+.text { min-width: 0; }
+.title {
+  font-size: var(--fs-display);
+  line-height: 1.15;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.meta { color: var(--ink2); font-weight: 500; }
+.sub { margin-top: var(--sp-6); color: var(--ink2); }

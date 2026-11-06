@@ -1,0 +1,88 @@
+export type MonitorStatus = 'up' | 'warn' | 'down' | 'unknown'
+export type DayState = 'ok' | 'partial' | 'down' | 'unknown' | 'no_data'
+
+export interface Expiry {
+  daysLeft: number | null
+  expiresAt: string | null
+  issuer?: string
+  reason?: string
+}
+
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
+export type ConditionType = 'status' | 'response' | 'body' | 'json'
+
+export interface Condition {
+  type: ConditionType
+  op: string
+  path?: string
+  value: string
+}
+
+export interface MonitorConfig {
+  id?: string
+  name: string
+  url: string
+  method: HttpMethod
+  headers: { name: string; value: string }[]
+  body: string
+  timeoutSec: number
+  intervalSec: number
+  alertThreshold: number
+  conditions: Condition[]
+}
+
+export interface Monitor extends MonitorConfig {
+  id: string
+  status: MonitorStatus
+  since: string | null
+  lastCheck: string | null
+  responseMs: number | null
+  /** Veri yoksa null. */
+  uptime: { d1: number | null; d7: number | null; d30: number | null }
+  days: DayState[]
+  halfHours: DayState[]
+  ssl: Expiry
+  domain: Expiry
+  /** Dilden bağımsız neden: http:503 Service Unavailable, net:timeout, cond:body */
+  failure?: string
+  notifiedAt?: string
+  lastIncident?: { endedAt: string; durationSec: number }
+}
+
+export interface ConditionResult {
+  type: ConditionType
+  op: string
+  path?: string
+  ok: boolean
+  expected: string
+  actual: string
+  reason?: 'no_response' | 'not_json' | 'path_missing'
+}
+
+export interface CheckResult {
+  ok: boolean
+  method: HttpMethod
+  url: string
+  status: number
+  statusText: string
+  responseMs: number
+  contentType: string
+  error?: string
+  conditions: ConditionResult[]
+  at: string
+}
+
+export interface AuthStatus {
+  status: 'needsSetup' | 'loggedOut' | 'loggedIn'
+  passwordChangedAt?: string
+}
+
+export interface Network {
+  online: boolean
+  offlineSince?: string
+}
+
+export interface Dashboard {
+  monitors: Monitor[]
+  network: Network
+}

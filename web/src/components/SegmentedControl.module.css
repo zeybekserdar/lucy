@@ -1,0 +1,28 @@
+.group {
+  align-self: flex-start;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  max-width: 100%;
+  padding: 2px;
+  border-radius: var(--r-md);
+  background: var(--hover);
+}
+.option {
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--fs-control);
+  font-weight: 500;
+  cursor: pointer;
+}
+.option:focus-visible { outline-offset: 1px; }
+.on {
+  background: var(--surface);
+  box-shadow: 0 1px 2px oklch(0 0 0 / .12);
+  font-weight: 600;
+}
+.mono { padding: 0 12px; font-family: var(--font-mono); font-size: var(--fs-meta); }
