@@ -22,8 +22,9 @@ type Scheduler struct {
 	Store    *store.Store
 	Checker  *checker.Checker
 	Guard    *checker.Guard
-	Composer *notify.Composer // nil turns notifications off
-	Domains  DomainLookup     // nil turns domain checks off
+	Composer *notify.Composer           // nil turns notifications off
+	Enabled  func(context.Context) bool // nil means always, otherwise asked before each message
+	Domains  DomainLookup               // nil turns domain checks off
 	Log      *slog.Logger
 
 	slots chan struct{}
@@ -150,7 +151,7 @@ func (s *Scheduler) Run(ctx context.Context, cfg model.Config) (checker.Result, 
 		ms := result.ResponseMs
 		record.ResponseMs = &ms
 	}
-	if s.Composer != nil {
+	if s.notifying(ctx) {
 		switch event {
 		case alert.Down:
 			record.Notification = s.Composer.Down(cfg.ID, cfg.Name, cfg.URL, result.Failure())
@@ -170,6 +171,10 @@ func (s *Scheduler) Run(ctx context.Context, cfg model.Config) (checker.Result, 
 	return result, s.warnExpiry(ctx, cfg, "ssl", expires, current.SSLStage)
 }
 
+func (s *Scheduler) notifying(ctx context.Context) bool {
+	return s.Composer != nil && (s.Enabled == nil || s.Enabled(ctx))
+}
+
 // warnExpiry sends a stage's warning once and keeps the stage current.
 func (s *Scheduler) warnExpiry(ctx context.Context, cfg model.Config, kind string, expires time.Time, stage int) error {
 	if expires.IsZero() {
@@ -182,7 +187,7 @@ func (s *Scheduler) warnExpiry(ctx context.Context, cfg model.Config, kind strin
 		return nil
 	}
 	var message *store.Notification
-	if notifyNow && s.Composer != nil {
+	if notifyNow && s.notifying(ctx) {
 		message = s.Composer.Expiry(cfg.ID, cfg.Name, kind, days, expires)
 	}
 	return s.Store.SaveExpiryStage(ctx, cfg.ID, kind, next, message, now)

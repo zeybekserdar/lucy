@@ -16,7 +16,7 @@ cp .env.example .env
 openssl rand -hex 12
 ```
 
-Telefondaki ntfy uygulamasında aynı konuya abone ol, sonra Lucy'yi başlat:
+`.env` yalnızca ilk açılışta okunur, sonrasında bildirim ayarları Ayarlar ekranından değişir. Telefondaki ntfy uygulamasında aynı konuya abone ol, sonra Lucy'yi başlat:
 
 ```bash
 docker compose up -d --build
@@ -33,6 +33,10 @@ docker compose up -d --build
 Veriler korunur, veritabanı kendiliğinden güncellenir.
 
 ## Yedekleme
+
+Monitörlerin ve bildirim ayarlarının yedeği için Ayarlar ekranındaki **Dışa aktar** yeterlidir. Dosyada ntfy token'ı bulunmaz, monitör başlıkları ise açık yazılır.
+
+Geçmişi de içeren tam yedek için veritabanını kopyala.
 
 Veritabanı çalışırken kopyalanırsa bozuk yedek çıkabilir, bu yüzden önce durdur:
 

@@ -2,7 +2,7 @@
 .back:hover { color: var(--ink); }
 .note { color: var(--ink2); }
 
-.groupTitle { margin: 0 4px 10px; font-size: var(--fs-meta); font-weight: 600; color: var(--ink2); }
+.groupTitle { margin: 24px 4px 10px; font-size: var(--fs-meta); font-weight: 600; color: var(--ink2); }
 .group {
   overflow: hidden;
   border-radius: var(--r-card);
@@ -14,11 +14,11 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 16px;
-  padding: 12px 20px;
+  padding: 12px clamp(16px, 3cqi, 20px);
   border-top: 1px solid var(--sep);
 }
 .row:first-child { border-top: 0; }
-.row > span { flex: 1 1 150px; }
+.row > span { flex: 1 1 150px; font-weight: 500; }
 
 .stack { display: flex; flex-direction: column; gap: 20px; padding-top: 16px; }
 .inline { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }

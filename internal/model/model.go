@@ -8,8 +8,8 @@ import (
 )
 
 type Header struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name  string `json:"name" yaml:"name"`
+	Value string `json:"value" yaml:"value"`
 }
 
 // Condition is one rule a response must satisfy.
@@ -19,23 +19,23 @@ type Header struct {
 //	body:     op contains or not_contains
 //	json:     op equals or contains, with path like $.a.b[0]
 type Condition struct {
-	Type  string `json:"type"`
-	Op    string `json:"op"`
-	Path  string `json:"path,omitempty"`
-	Value string `json:"value"`
+	Type  string `json:"type" yaml:"type"`
+	Op    string `json:"op" yaml:"op"`
+	Path  string `json:"path,omitempty" yaml:"path,omitempty"`
+	Value string `json:"value" yaml:"value"`
 }
 
 type Config struct {
-	ID             string      `json:"id"`
-	Name           string      `json:"name"`
-	URL            string      `json:"url"`
-	Method         string      `json:"method"`
-	Headers        []Header    `json:"headers"`
-	Body           string      `json:"body"`
-	TimeoutSec     int         `json:"timeoutSec"`
-	IntervalSec    int         `json:"intervalSec"`
-	AlertThreshold int         `json:"alertThreshold"`
-	Conditions     []Condition `json:"conditions"`
+	ID             string      `json:"id" yaml:"-"`
+	Name           string      `json:"name" yaml:"name"`
+	URL            string      `json:"url" yaml:"url"`
+	Method         string      `json:"method" yaml:"method,omitempty"`
+	Headers        []Header    `json:"headers" yaml:"headers,omitempty"`
+	Body           string      `json:"body" yaml:"body,omitempty"`
+	TimeoutSec     int         `json:"timeoutSec" yaml:"timeoutSec,omitempty"`
+	IntervalSec    int         `json:"intervalSec" yaml:"intervalSec,omitempty"`
+	AlertThreshold int         `json:"alertThreshold" yaml:"alertThreshold,omitempty"`
+	Conditions     []Condition `json:"conditions" yaml:"conditions,omitempty"`
 }
 
 const MinIntervalSec = 30

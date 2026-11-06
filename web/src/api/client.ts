@@ -1,13 +1,32 @@
-import type { AuthStatus, ChartRange, CheckResult, Dashboard, History, Monitor, MonitorConfig } from './types'
+import type {
+  AuthStatus,
+  ChartRange,
+  CheckResult,
+  Dashboard,
+  History,
+  ImportPreview,
+  Monitor,
+  MonitorConfig,
+  NtfySettings,
+  NtfyTestResult,
+} from './types'
 
 export class ApiError extends Error {
   status: number
   fields: Record<string, string>
   retryAfterSec: number
+  /** Sunucunun dilden bağımsız hata kodu. */
+  code: string
+  detail: string
 
-  constructor(status: number, data: { fields?: Record<string, string>; retryAfterSec?: number } = {}) {
+  constructor(
+    status: number,
+    data: { fields?: Record<string, string>; retryAfterSec?: number; error?: string; detail?: string } = {},
+  ) {
     super(`API ${status}`)
     this.status = status
+    this.code = data.error ?? ''
+    this.detail = data.detail ?? ''
     this.fields = data.fields ?? {}
     this.retryAfterSec = data.retryAfterSec ?? 0
   }
@@ -78,3 +97,9 @@ export const updateMonitor = (id: string, config: MonitorConfig) =>
   request<Monitor>(`/monitors/${id}`, 'PUT', config)
 export const deleteMonitor = (id: string) => request<void>(`/monitors/${id}`, 'DELETE')
 export const testMonitor = (config: MonitorConfig) => request<CheckResult>('/monitors/test', 'POST', config)
+
+export const fetchNtfy = () => request<NtfySettings>('/settings/ntfy')
+export const saveNtfy = (settings: NtfySettings) => request<void>('/settings/ntfy', 'PUT', settings)
+export const testNtfy = (settings: NtfySettings) => request<NtfyTestResult>('/notify/test', 'POST', settings)
+export const previewBackup = (yaml: string) => request<ImportPreview>('/backup/preview', 'POST', { yaml })
+export const importBackup = (yaml: string) => request<ImportPreview>('/backup/import', 'POST', { yaml })

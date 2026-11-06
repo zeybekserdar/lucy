@@ -2,16 +2,21 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { SegmentedControl } from '../components/SegmentedControl'
-import { SecurityGroup } from '../features/settings/SecurityGroup'
 import { Shell } from '../components/Shell'
-import { TopBar } from '../components/TopBar'
+import { BackupGroup } from '../features/settings/BackupGroup'
+import { NtfyGroup } from '../features/settings/NtfyGroup'
+import { SecurityGroup } from '../features/settings/SecurityGroup'
+import settings from '../features/settings/Settings.module.css'
 import { applyTheme, getTheme, saveLanguage, type Language, type Theme } from '../lib/preferences'
 import styles from './pages.module.css'
 
-// Şimdilik görünüm ve güvenlik; ntfy ve yedekleme ayarları sonraki adımda gelecek.
+const VERSION = '1.0.0'
+
 export function SettingsPage() {
   const { t, i18n } = useTranslation()
   const [theme, setTheme] = useState<Theme>(getTheme)
+  // İçe aktarma bildirim ayarlarını değiştirmiş olabilir; grup yeniden yüklenir.
+  const [imports, setImports] = useState(0)
 
   function changeLanguage(language: Language) {
     saveLanguage(language)
@@ -25,10 +30,25 @@ export function SettingsPage() {
 
   return (
     <Shell maxWidth={680}>
-      <TopBar />
-      <Link to="/" className={styles.back}>
-        ‹ {t('nav.back')}
-      </Link>
+      <div className={settings.top}>
+        <Link to="/" className={settings.back}>
+          <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true">
+            <path
+              d="M12.5 4.5 7 10l5.5 5.5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          {t('nav.back')}
+        </Link>
+      </div>
+      <h1 className={settings.title}>{t('settings.title')}</h1>
+
+      <NtfyGroup key={imports} />
+
       <h2 className={styles.groupTitle}>{t('settings.appearance')}</h2>
       <div className={styles.group}>
         <div className={styles.row}>
@@ -57,7 +77,12 @@ export function SettingsPage() {
           />
         </div>
       </div>
+
+      <BackupGroup onImported={() => setImports((count) => count + 1)} />
       <SecurityGroup />
+      <p className={settings.version}>
+        Lucy {VERSION} · {window.location.host}
+      </p>
     </Shell>
   )
 }

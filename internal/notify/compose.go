@@ -16,6 +16,7 @@ type phrases struct {
 	sslSoon, sslDone                string
 	domainSoon, domainDone          string
 	expiresIn, expired              string
+	testTitle, testBody             string
 }
 
 var languages = map[string]phrases{
@@ -28,6 +29,7 @@ var languages = map[string]phrases{
 		sslSoon: "%s: SSL sertifikası bitiyor", sslDone: "%s: SSL sertifikasının süresi doldu",
 		domainSoon: "%s: alan adı bitiyor", domainDone: "%s: alan adının süresi doldu",
 		expiresIn: "%d gün kaldı · %s", expired: "Bitiş tarihi %s",
+		testTitle: "Lucy test bildirimi", testBody: "Bildirimler çalışıyor.",
 	},
 	"en": {
 		down: "%s is down", recovered: "%s is back", lasted: "The outage lasted %s",
@@ -38,6 +40,7 @@ var languages = map[string]phrases{
 		sslSoon: "%s: SSL certificate is expiring", sslDone: "%s: SSL certificate has expired",
 		domainSoon: "%s: domain is expiring", domainDone: "%s: domain has expired",
 		expiresIn: "%d days left · %s", expired: "Expiry date %s",
+		testTitle: "Lucy test notification", testBody: "Notifications are working.",
 	},
 }
 
@@ -59,6 +62,11 @@ func (c Composer) click(id string) string {
 		return ""
 	}
 	return strings.TrimRight(c.PublicURL, "/") + "/m/" + id
+}
+
+func (c Composer) Test() store.Notification {
+	p := c.phrases()
+	return store.Notification{Title: p.testTitle, Message: p.testBody, Priority: 3, Tags: []string{"white_check_mark"}}
 }
 
 func (c Composer) Down(id, name, url, failure string) *store.Notification {

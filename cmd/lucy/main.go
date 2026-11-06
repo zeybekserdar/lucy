@@ -59,21 +59,21 @@ func run(log *slog.Logger) error {
 	check := checker.New()
 	sched := &scheduler.Scheduler{Store: db, Checker: check, Guard: guard, Domains: checker.NewDomains(), Log: log}
 
+	// The environment only seeds the first start; after that the settings screen owns these.
 	if topic := os.Getenv("LUCY_NTFY_TOPIC"); topic != "" {
-		sched.Composer = &notify.Composer{
-			Language:  env("LUCY_LANG", "tr"),
-			PublicURL: os.Getenv("LUCY_PUBLIC_URL"),
-		}
-		ntfy := notify.Ntfy{
-			Server: env("LUCY_NTFY_SERVER", "https://ntfy.sh"),
+		seed := store.NtfySettings{
+			Server: env("LUCY_NTFY_SERVER", store.DefaultNtfyServer),
 			Topic:  topic,
 			Token:  os.Getenv("LUCY_NTFY_TOKEN"),
 		}
-		go notify.Worker{Store: db, Notifier: ntfy, Log: log}.Run(ctx)
-		log.Info("notifications on", "server", ntfy.Server)
-	} else {
-		log.Warn("notifications off: LUCY_NTFY_TOPIC is not set")
+		if err := db.SeedNtfy(ctx, seed); err != nil {
+			return err
+		}
 	}
+	live := notify.Live{Store: db}
+	sched.Composer = &notify.Composer{Language: env("LUCY_LANG", "tr"), PublicURL: os.Getenv("LUCY_PUBLIC_URL")}
+	sched.Enabled = live.Configured
+	go notify.Worker{Store: db, Notifier: live, Log: log}.Run(ctx)
 
 	if err := sched.Start(ctx); err != nil {
 		return err

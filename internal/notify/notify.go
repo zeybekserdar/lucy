@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -28,6 +29,12 @@ type Ntfy struct {
 }
 
 func (n Ntfy) Send(ctx context.Context, msg store.Notification) error {
+	_, err := n.Publish(ctx, msg)
+	return err
+}
+
+// Publish also reports the HTTP status, 0 when the server gave no answer.
+func (n Ntfy) Publish(ctx context.Context, msg store.Notification) (int, error) {
 	payload, err := json.Marshal(map[string]any{
 		"topic":    n.Topic,
 		"title":    msg.Title,
@@ -37,11 +44,11 @@ func (n Ntfy) Send(ctx context.Context, msg store.Notification) error {
 		"click":    msg.Click,
 	})
 	if err != nil {
-		return err
+		return 0, err
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimRight(n.Server, "/")+"/", bytes.NewReader(payload))
 	if err != nil {
-		return err
+		return 0, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	if n.Token != "" {
@@ -53,14 +60,39 @@ func (n Ntfy) Send(ctx context.Context, msg store.Notification) error {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer resp.Body.Close()
 	io.Copy(io.Discard, resp.Body)
 	if resp.StatusCode >= 300 {
-		return fmt.Errorf("ntfy: %s", resp.Status)
+		return resp.StatusCode, fmt.Errorf("ntfy: %s", resp.Status)
 	}
-	return nil
+	return resp.StatusCode, nil
+}
+
+// ErrNotConfigured keeps a message queued until a topic is set.
+var ErrNotConfigured = errors.New("ntfy: no topic configured")
+
+// Live reads the settings on every send, so changes apply without a restart.
+type Live struct {
+	Store *store.Store
+}
+
+func (l Live) Send(ctx context.Context, msg store.Notification) error {
+	settings, err := l.Store.Ntfy(ctx)
+	if err != nil {
+		return err
+	}
+	if settings.Topic == "" {
+		return ErrNotConfigured
+	}
+	return Ntfy{Server: settings.Server, Topic: settings.Topic, Token: settings.Token}.Send(ctx, msg)
+}
+
+// Configured reports whether notifications have somewhere to go.
+func (l Live) Configured(ctx context.Context) bool {
+	settings, err := l.Store.Ntfy(ctx)
+	return err == nil && settings.Topic != ""
 }
 
 const (

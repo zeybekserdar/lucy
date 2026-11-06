@@ -45,6 +45,12 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("PUT /api/monitors/{id}", s.authed(s.updateMonitor))
 	mux.HandleFunc("DELETE /api/monitors/{id}", s.authed(s.deleteMonitor))
 	mux.HandleFunc("POST /api/monitors/{id}/check", s.authed(s.checkMonitor))
+	mux.HandleFunc("GET /api/settings/ntfy", s.authed(s.getNtfy))
+	mux.HandleFunc("PUT /api/settings/ntfy", s.authed(s.putNtfy))
+	mux.HandleFunc("POST /api/notify/test", s.authed(s.testNtfy))
+	mux.HandleFunc("GET /api/backup.yaml", s.authed(s.exportBackup))
+	mux.HandleFunc("POST /api/backup/preview", s.authed(s.previewBackup))
+	mux.HandleFunc("POST /api/backup/import", s.authed(s.importBackup))
 	mux.HandleFunc("/api/", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": "not_found"})
 	})

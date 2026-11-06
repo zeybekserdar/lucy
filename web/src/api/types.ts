@@ -95,6 +95,26 @@ export interface History {
   lastResult: CheckResult | null
 }
 
+export interface NtfySettings {
+  server: string
+  topic: string
+  token: string
+}
+
+export interface NtfyTestResult {
+  ok: boolean
+  /** Sunucu hiç yanıt vermediyse 0. */
+  status: number
+}
+
+export interface ImportPreview {
+  add: string[]
+  update: string[]
+  unchanged: number
+  invalid: { name: string; fields: Record<string, string> }[]
+  notifications: boolean
+}
+
 export interface AuthStatus {
   status: 'needsSetup' | 'loggedOut' | 'loggedIn'
   passwordChangedAt?: string
