@@ -83,6 +83,8 @@ export const en: typeof tr = {
     title: 'Notifications · ntfy',
     server: 'Server address',
     topic: 'Topic',
+    generate: 'Generate a random topic',
+    subscribeHint: 'After saving, subscribe to this topic in the ntfy app on your phone; the old topic stops receiving notifications.',
     token: 'Access token',
     tokenNone: 'None',
     show: 'Show',

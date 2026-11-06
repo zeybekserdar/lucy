@@ -60,6 +60,28 @@
   cursor: pointer;
 }
 
+.dice {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--hover);
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-panel);
+}
+.dice:active:not(:disabled) { transform: rotate(90deg); }
+.dice:disabled { color: var(--ink2); cursor: default; }
+.optional { font-weight: 400; color: var(--ink2); }
+.fieldNote { flex-basis: 100%; font-size: var(--fs-meta); color: var(--ink2); text-wrap: pretty; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dice:active:not(:disabled) { transform: none; }
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;

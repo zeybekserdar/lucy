@@ -7,6 +7,7 @@ import { FieldError } from '../../components/TextField'
 import { GLYPHS } from '../../components/glyphs'
 import { formatClock } from '../../lib/format'
 import styles from './Settings.module.css'
+import { generateTopic } from './topic'
 
 type Note = { ok: boolean; text: string }
 
@@ -31,6 +32,8 @@ export function NtfyGroup() {
   }, [])
 
   const dirty = saved !== null && (Object.keys(draft) as (keyof NtfySettings)[]).some((k) => draft[k] !== saved[k])
+
+  const topicChanged = saved !== null && draft.topic !== '' && draft.topic !== saved.topic
 
   function change(key: keyof NtfySettings, value: string) {
     setDraft({ ...draft, [key]: value })
@@ -104,10 +107,13 @@ export function NtfyGroup() {
           </span>
           {errors.server && <FieldError>{errorText('server')}</FieldError>}
         </label>
-        <label className={styles.fieldRow}>
-          <span className={styles.fieldLabel}>{t('ntfy.topic')}</span>
+        <div className={styles.fieldRow}>
+          <label htmlFor="ntfy-topic" className={styles.fieldLabel}>
+            {t('ntfy.topic')}
+          </label>
           <span className={styles.fieldControl}>
             <input
+              id="ntfy-topic"
               className={styles.input}
               value={draft.topic}
               disabled={!saved}
@@ -116,12 +122,31 @@ export function NtfyGroup() {
               aria-invalid={errors.topic ? true : undefined}
               onChange={(event) => change('topic', event.target.value)}
             />
+            <button
+              type="button"
+              className={styles.dice}
+              disabled={!saved}
+              aria-label={t('ntfy.generate')}
+              title={t('ntfy.generate')}
+              onClick={() => change('topic', generateTopic())}
+            >
+              <svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true">
+                <rect x="3" y="3" width="14" height="14" rx="3.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+                <circle cx="7.2" cy="7.2" r="1.25" fill="currentColor" />
+                <circle cx="12.8" cy="7.2" r="1.25" fill="currentColor" />
+                <circle cx="10" cy="10" r="1.25" fill="currentColor" />
+                <circle cx="7.2" cy="12.8" r="1.25" fill="currentColor" />
+                <circle cx="12.8" cy="12.8" r="1.25" fill="currentColor" />
+              </svg>
+            </button>
           </span>
           {errors.topic && <FieldError>{errorText('topic')}</FieldError>}
-        </label>
+          {topicChanged && !errors.topic && <p className={styles.fieldNote}>{t('ntfy.subscribeHint')}</p>}
+        </div>
         <div className={styles.fieldRow}>
           <label htmlFor="ntfy-token" className={styles.fieldLabel}>
             {t('ntfy.token')}
+            <span className={styles.optional}> · {t('editor.optional')}</span>
           </label>
           <span className={styles.fieldControl}>
             <input

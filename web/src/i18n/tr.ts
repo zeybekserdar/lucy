@@ -81,6 +81,8 @@ export const tr = {
     title: 'Bildirimler · ntfy',
     server: 'Sunucu adresi',
     topic: 'Konu',
+    generate: 'Rastgele konu üret',
+    subscribeHint: 'Kaydettikten sonra telefondaki ntfy uygulamasında bu konuya abone ol; eski konuya bildirim gelmez.',
     token: 'Erişim token’ı',
     tokenNone: 'Yok',
     show: 'Göster',
