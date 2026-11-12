@@ -1,0 +1,55 @@
+name: Bug report
+description: Something in Lucy does not work as expected.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. For security issues, please follow SECURITY.md instead of opening an issue.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the problem and what you expected to happen instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Add a monitor for ...
+        2. Wait until ...
+        3. See ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: The commit you built from, or the version shown at the bottom of Settings.
+    validations:
+      required: true
+  - type: dropdown
+    id: setup
+    attributes:
+      label: How do you run Lucy?
+      options:
+        - Docker Compose
+        - Docker (other)
+        - Binary built from source
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser, phone and ntfy app
+      description: Only if the problem is in the interface or in notifications.
+      placeholder: Safari on iOS 26, ntfy iOS app
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Output of `docker compose logs lucy`, with tokens and private addresses removed.
+      render: text

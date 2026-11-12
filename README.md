@@ -1,135 +1,213 @@
-# Handoff: Lucy — kişisel uptime izleme
+<p align="center">
+  <img src="assets/notification-icon.svg" width="96" height="96" alt="Lucy logo">
+</p>
 
-## Genel bakış
-Lucy, ev sunucusunda çalışan, tek kullanıcılı bir uptime izleme web uygulaması. HTTP(S) kontrolleri yapar, SSL sertifikası ve alan adı süresini izler, sorun olduğunda **ntfy** ile telefona bildirim gönderir. Kullanıcı uygulamayı çoğunlukla birkaç saniyeliğine açıp “her şey yolunda mı?” sorusuna cevap alır; arayüz bu yüzden sorun yokken sakin ve neredeyse boş, sorun varken dikkat doğrudan sorunlu monitöre gider.
+<h1 align="center">Lucy</h1>
 
-Kapsam dışı: kullanıcı/rol yönetimi, açık durum sayfası, bakım penceresi, ntfy dışı bildirim kanalları, TCP/Ping/DNS/heartbeat monitörleri.
+<p align="center">
+  A calm, self-hosted uptime monitor for your home server.<br>
+  HTTP checks, SSL and domain expiry, and phone alerts through <a href="https://ntfy.sh">ntfy</a>.
+</p>
 
-## Tasarım dosyaları hakkında
-`designs/` klasöründeki dosyalar **HTML ile hazırlanmış tasarım referanslarıdır**: hedeflenen görünüm ve davranışı gösteren prototiplerdir, doğrudan kopyalanacak üretim kodu değildir. Görev, bu tasarımları **React** ile (proje henüz yoksa Vite + React + TypeScript önerilir) uygulamanın kendi kalıplarıyla yeniden kurmaktır. `.dc.html` dosyaları tarayıcıda doğrudan açılır (`support.js` aynı klasörde olmalı); `Lucy.dc.html` tüm ekran ve durumların bulunduğu ana tuvaldir, `Lucy Sistem.dc.html` token ve bileşen sayfasıdır.
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue" alt="License: Apache 2.0"></a>
+  <img src="https://img.shields.io/badge/go-1.27-00ADD8" alt="Go 1.27">
+  <img src="https://img.shields.io/badge/docker-single%20container-2496ED" alt="Docker">
+</p>
 
-## Doğruluk düzeyi
-**Yüksek doğruluk (hi-fi).** Renkler, tipografi, boşluklar, köşe yarıçapları ve etkileşimler nihaidir. `tokens.css` doğrudan kullanılabilir. Arayüz metinleri Türkçe örnek metinlerdir; İngilizce çeviri i18n dosyasında yapılmalıdır.
+<p align="center">
+  <img src="docs/screenshots/incident-light.png" width="820" alt="Lucy home screen during an outage">
+</p>
 
-## Seçilen yönler
-- **Ana ekran:** `Lucy.dc.html` → **2a “Odak kartı”** (`LucyHome2.dc.html`, `variant="focus"`). 1a–1h ve 2b/2c alternatif olarak kaldı; boş durum (1h) ve “internet kesik” (1g) durumlarının metin/yerleşimi 1. turdan alınmalı.
-- **Logo:** **3c “Oturan Lucy · profil”** (`assets/lucy-logo.svg`).
-- **Detay:** masaüstünde sağdan panel (≥ 900 px), telefonda ayrı sayfa.
+Most of the time you open Lucy for a few seconds to answer one question: *is everything OK?* So the
+interface stays quiet when nothing is wrong, and puts the broken monitor front and center when
+something is.
 
----
+Lucy is a single-user app that runs as one small container with an embedded SQLite database. There
+is no account system, no public status page and no external services besides the ntfy server you
+choose.
 
-## Ekranlar
+## Features
 
-Ortak kabuk: zemin `--bg`, yazı `--font-sans` 15/1.4, `font-variant-numeric: tabular-nums`. İçerik `width: calc(100% - 32px)` ve ortalı; en büyük genişlikler: ana ekran 880, detay 720, ayarlar 680, form 640 px. Başlık boyutları kapsayıcı genişliğine göre `clamp()` + `cqi` ile küçülür (kök: `container-type: inline-size`).
+- **HTTP(S) monitors** with GET, POST, PUT or HEAD, custom headers and request body, a timeout, and
+  a check interval of 30 seconds, 1, 5 or 15 minutes.
+- **Conditions** that must all hold for a monitor to count as up: status code range, response time,
+  body contains or does not contain, and JSON path equals or contains (for example `$.status`).
+- **Alert threshold**: notify only after 1–10 failed checks in a row, so a single blip stays quiet.
+- **SSL certificate and domain expiry**: warnings 14 and 7 days ahead and when they expire. Domain
+  dates come from RDAP; local names such as `.home` are reported as unknown.
+- **ntfy notifications** for outages, recoveries and expiry warnings, with buttons that open the
+  monitor in Lucy or the site itself. Mark a monitor as **urgent** and its outage alerts ring through
+  Do Not Disturb.
+- **Knows when your internet is down.** If Lucy loses its own connection, checks to outside sites are
+  marked *unknown* instead of *down*, notifications wait in a queue, and local monitors keep working.
+- **Honest history.** Time when Lucy itself was not running is shown as *no data* and is left out of
+  uptime percentages.
+- **Monitor details**: uptime for 24 hours, 7 and 30 days, a response time chart with outage bands,
+  the last check result and a 30-day event timeline.
+- **Test before saving**: run a single check from the editor and see which conditions pass.
+- **YAML backup**: export and import monitors and notification settings. The ntfy token is never
+  written to the file, and imports show a preview first.
+- English and Turkish interface, light, dark and system themes, and a layout that works on a phone.
 
-### Üst çubuk (tüm ana sayfalarda)
-- Yükseklik ≈ 70 (padding 18px 0). Solda logo 22 px + “Lucy” 17/650, −0.01em, gap 8.
-- Sağda: **Monitör ekle** (birincil, pill, 34 px, + ikonu 14 px; telefonda yalnızca ikon ve `aria-label`), **Ayarlar** (hayalet düğme).
+<p align="center">
+  <img src="docs/screenshots/ok-dark.png" width="560" alt="All monitors up, dark theme">
+  <img src="docs/screenshots/phone-dark.png" width="200" alt="Lucy on a phone">
+</p>
 
-### 1. Giriş (`LucyLogin.dc.html`)
-- Dikey ve yatay ortalı sütun, max 340 px. Logo 64 px → mb 24. Başlık 28/650. Açıklama 15, `--ink2`, mb 28.
-- Alan: etiket 13/550, input 44 px, radius 12, kenar `--sep-strong`, 17 px, letter-spacing .1em. Odakta kenar `--focus` + 3 px halka (`color-mix(--focus 30%)`).
-- Birincil düğme 44 px, radius 12, 16/600, tam genişlik.
-- **Hâller:**
-  - `login`: “Lucy” / “Devam etmek için şifreni gir.” / “Giriş yap”.
-  - `setup` (ilk açılış, hiç şifre yokken): “Lucy’ye hoş geldin”, “Yeni şifre” + “Şifre (tekrar)”, altında canlı doğrulama satırı (onay ikonu + “En az 12 karakter · iki alan eşleşiyor”), düğme “Şifreyi belirle ve başla”.
-  - `error`: input kenarı `--down` + halka, altında `role="alert"` ikonlu “Şifre yanlış. Tekrar dene.”
-- Alt not 13, `--ink2`: `lucy reset-password` komutu ile sıfırlama.
+## Quick start
 
-### 2. Ana ekran — 2a Odak kartı (`LucyHome2.dc.html`)
-1. **Durum cümlesi** (hero): 30 px durum ikonu + h1 `clamp(24px,4.2cqi,34px)`/650/−0.02em, “ · meta” kısmı `--ink2`/500. Altında 15 px `--ink2` alt satır. Padding üst `clamp(28px,7cqi,56px)`. `aria-live="polite"`.
-   - Her şey yolunda: ✓ (dolu `--ok`) “Tümü yolunda · 7 monitör” / “Son kontrol 12 saniye önce”.
-   - Kesinti: ✕ (dolu `--down`) “api.app kesintide · 14 dk” / “Diğer 6 monitör çalışıyor · son kontrol 8 sn önce”.
-   - İnternet kesik: ? (dolu `--unk`) “Ev interneti kesik · 6 dk” / “Dış monitörler bilinmiyor sayılıyor ve kesintiye yazılmıyor. Yerel monitörler çalışıyor.”
-2. **Odak kartı** (yalnızca sorun varsa): yüzey, radius 18, mb 32.
-   - Her kesinti için bir blok: zemin `--down-tint`, padding `clamp(16px,3cqi,24px)`, gap 14. Satır: ikon 24 + ad 20/650 + “Kesinti” rozeti (dolu `--down`, `--on-status`, 12/600) + sağda süre 20/600 `--down-ink`. Açıklama (`--ink2`): “HTTP 503 Service Unavailable · son kontrol 8 sn önce · ntfy bildirimi 14:02’de gönderildi”. **Son 24 saat** şeridi: 48 yarım saatlik çubuk, 28 px yükseklik, gap 2, altta “24 sa önce / Şimdi” 12 px. Düğmeler: “Ayrıntılar” (birincil), “Şimdi kontrol et” (ikincil).
-   - Uyarı/bilinmiyor monitörleri: tek satır (ikon 20 + **ad** — metin `--warn-ink`/`--unk-ink` + ›), üstte `--sep` çizgisi.
-3. **Liste başlığı** 13/600 `--ink2`: “Çalışıyor · 5” (sorun yoksa “Monitörler · 7”).
-4. **Kompakt liste**: yüzey kartı, radius 16. Satır grid `20px | 1fr | 178px | 64px | 56px`, gap 14, padding 11px 20px; ✓ ikonu 18 (dolgusuz, `--ok-ink`); ad 15/550 + (varsa) not 13 (“Dün 4 sa 12 dk kesinti”, “Alan adı süresi bilinmiyor” → `--unk-ink`); 30 çubuk 4×16 px gap 2; uptime 500; yanıt `--ink2`.
-   - **Telefon (<600 px)**: satır iki sıra — (ikon + ad … uptime) / (30 çubuk esnek genişlik … yanıt). Hiçbir şey yatay taşmaz; ad tek satır + üç nokta, diğer metinler sarılır.
-5. **Açıklama satırı** (legend) 12 px: Çalışıyor, Kısmi kesinti, Kesinti, Bilinmiyor, “Veri yok · Lucy kapalı”.
-- Sıralama: kesinti → uyarı → bilinmiyor → çalışıyor; kendi içinde ada göre.
-- **Boş durum (ilk kullanım, 1h):** üst çubukta “Monitör ekle” gizli; ortada logo 56 px, “Henüz izlenen bir şey yok”, açıklama, “İlk monitörü ekle” (birincil 40 px) + “YAML’dan içe aktar” (ikincil).
+You need Docker with the Compose plugin. Run Lucy on a different machine from the services it
+watches: if that machine goes down, Lucy goes down with it and cannot tell you.
 
-### 3. Monitör detayı (`LucyDetail.dc.html`)
-- Masaüstü: ana ekranın üstünde, sağa yaslı **520 px panel** (`role="dialog"`), arkada scrim (açık `oklch(0 0 0/.22)`, koyu `/.5`), sol kenar `--sep` + gölge. Esc ve scrim tıklaması kapatır, odak panelde kilitli, kapanınca tetikleyen satıra döner. Telefon: tam sayfa, solda “‹ Monitörler”.
-- Sıra (gap 16):
-  1. Üst sıra: (sayfa: geri) … “Düzenle” (hayalet) + (panel: × 34 px yuvarlak).
-  2. Ad `clamp(24px,5cqi,30px)`/650 + URL mono 13 `--ink2`. Durum satırı: ikon 18 + durum metni 600 (renk = durum ink) + meta 14 `--ink2` + sağda “Şimdi kontrol et” (ikincil 32 px).
-  3. **Uptime üçlüsü**: tek kart, 3 eşit sütun, `--sep` dikey ayırıcı; etiket 12 `--ink2` (“Son 24 saat / Son 7 gün / Son 30 gün”), değer `clamp(18px,4cqi,22px)`/600 (kesintideyse 24 saat değeri `--down-ink`).
-  4. **Yanıt süresi grafiği**: başlık 15/600 + “ortalama N ms” + segment (24 sa / 7 gün / 30 gün; varsayılan 7 gün). Çizim alanı 170 px; y ekseni 0 / orta / max (11 px), kesikli yatay ızgara `--sep`, alt çizgi `--sep-strong`. Çizgi `--ink` 1.5 px, alan dolgusu `--ink` %6.
-     - **Kesinti** bandı: `color-mix(in oklch, var(--down) 16%, transparent)` + üstte 2 px `--down` + “Kesinti” etiketi; çizgi bu aralıkta kesilir.
-     - **Veri yok** bandı (Lucy kapalıyken): renksiz, `repeating-linear-gradient(135deg, var(--sep-strong) 0 1.5px, transparent 1.5px 6px)` + “Veri yok” etiketi; çizgi kesilir. Kesintiden **renk, desen ve metinle** ayrılır ve uptime hesabına girmez.
-     - Eksen etiketleri: 24 sa → saatler, 7 gün → gün kısaltmaları (Cmt, Paz, …, Bugün), 30 gün → tarihler. Lejant grafiğin altında.
-  5. **Son kontrol**: durum kodu mono 14/600 (durum rengi) + meta; her koşul bir satır: ✓/✕ glif + koşul adı + “Beklenen: …” + sonuç (renkli, 550).
-  6. **Sertifika ve alan adı**: iki satır; sağda ikon + kalan gün. Durumlar: ≥ 15 gün `ok`, ≤ 14 gün `warn` (“7 gün”), bilinmiyor `unk` (“Bilinmiyor” + açıklama: “.home yerel bir alan adı; WHOIS kaydı olmadığı için süre öğrenilemiyor.”), süresi dolmuş `down`.
-  7. **Olaylar · son 30 gün**: dikey zaman çizelgesi. Kesinti: dolu `--down` nokta, “Kesinti” `--down-ink` + süre, altında zaman aralığı · neden. Veri yok: kesikli boş halka, `--ink2`, “Lucy kapalıydı, kesinti sayılmadı”. Süren kesinti “14 dk · sürüyor”.
+```bash
+git clone https://github.com/zeybekserdar/lucy.git
+cd lucy
+cp .env.example .env
+```
 
-### 4. Monitör ekle / düzenle (`LucyEditor.dc.html`)
-- Sayfa (masaüstünde 640 px sütun; ileride modal da olabilir). “‹ Vazgeç”, başlık “Yeni monitör” / “api.app’i düzenle”.
-- **Temel kart** (her zaman görünür): Adres (mono, zorunlu), Ad (isteğe bağlı; placeholder = host), Kontrol aralığı (segment: 30 sn / 1 dk / 5 dk / 15 dk, varsayılan 1 dk), Alarm eşiği (− N + stepper, 1–10, varsayılan 3; yanında “art arda başarısız kontrolden sonra bildir · yaklaşık N dakika” canlı hesaplanır).
-- **Gelişmiş ayarlar**: varsayılan **kapalı** bir açılır düğme (tam genişlik kart, `aria-expanded`, ok 180 ms döner). Kapalıyken özet: “Yöntem, başlıklar, gövde, zaman aşımı ve koşullar. Varsayılan: GET, 10 sn, durum kodu 200–299.”; düzenlemede gerçek değerlerin özeti.
-  - **İstek kartı**: Yöntem segmenti (GET/POST/PUT/HEAD, mono), Zaman aşımı (sn), Başlıklar (ad/değer satırları + kaldır, “+ Başlık ekle”), Gövde (mono textarea; GET/HEAD’de placeholder “GET isteklerinde gövde gönderilmez.”).
-  - **Koşullar kartı**: “Hepsi sağlanırsa monitör çalışıyor sayılır.” Koşul türleri: Durum kodu (arasında/eşittir), Yanıt süresi (altında), Gövde içeriği (içerir/içermez), JSON yolu (yol + eşittir/içerir + değer). “+ Koşul ekle”.
-- **Doğrulama** (gönderimde ve alan bırakıldığında):
-  - Adres `http://` veya `https://` ile başlamalı → hata + “https://… kullan” öneri düğmesi.
-  - Zaman aşımı < kontrol aralığı → “Kontrol aralığından (60 sn) kısa olmalı.”
-  - JSON yolu `$` ile başlamalı → “JSON yolu $ ile başlamalı, örneğin $.status”.
-  - Hata stili: kenar `--down` + 3 px halka (`color-mix(--down 22%)`), altta 14 px ikon + 13 px `--down-ink` metin, `aria-invalid`, `aria-describedby`. Formun üstünde özet uyarısı (`role="alert"`, `--down-tint`): “2 alanı düzeltmen gerekiyor.” Gelişmiş bölümde hata varsa bölüm otomatik açılır.
-- **Şimdi test et**: kaydetmeden tek kontrol çalıştırır. Sonuç kartı formun altında (`aria-live`): başarısızsa başlık zemini `--down-tint`, “Test başarısız · 3 koşuldan 2’si sağlanmadı · saat”, istek özeti mono (“GET https://api.app/health → 503 Service Unavailable · 41 ms · text/html”), her koşul ✓/✕ + açıklama. Başarılıysa aynı yapı, ✓ ve `--ok` tonları. Test sürerken düğme “Test ediliyor…” ve devre dışı.
-- Alt sıra: “Şimdi test et” (ikincil 40) … “İptal” (hayalet) + “Monitörü ekle” / “Değişiklikleri kaydet” (birincil).
+Pick an ntfy topic and put it in `.env`. Topics on ntfy.sh are public, so use a name nobody can
+guess:
 
-### 5. Ayarlar (`LucySettings.dc.html`)
-Gruplu listeler; grup başlığı 13/600 `--ink2`. Satır: etiket (flex 1 1 150) + kontrol (flex 2 1 260), dar ekranda alt alta sarılır.
-- **Bildirimler · ntfy**: Sunucu adresi, Konu, Erişim token’ı (maskeli; “Göster/Gizle”). “Test bildirimi gönder” → sonuç yanında: ✓ “Gönderildi · ntfy 200 döndü, 14:20” veya ✕ hata metni. Alt açıklama: hangi olaylarda bildirim gittiği.
-- **Görünüm**: Dil (Türkçe / English), Tema (Sistem / Açık / Koyu) segmentleri; değişiklik anında uygulanır.
-- **Yedekleme**: YAML dışa aktar (token dahil değil), YAML’dan içe aktar (dosya seç → önizleme → onay; aynı adresliler güncellenir).
-- **Güvenlik**: Şifre (“Şifreyi değiştir” → mevcut / yeni / tekrar alanları açılır), Oturumu kapat (`--down-ink` metin düğmesi).
-- Altta 12 px sürüm satırı.
+```bash
+openssl rand -hex 12
+```
 
----
+Subscribe to the same topic in the ntfy app on your phone, then start Lucy:
 
-## Etkileşim ve davranış
-- **Hover**: satır ve hayalet düğmede zemin `--hover`, 150 ms.
-- **Odak**: tüm etkileşimli öğelerde `:focus-visible` → 2 px `--focus` outline, 2 px ofset (liste satırlarında −2 px içe).
-- **Panel**: 220 ms sağdan kayma + scrim opaklığı, `cubic-bezier(.2,.8,.2,1)`. `prefers-reduced-motion` ile yalnız opaklık.
-- **Uptime çubukları**: her gün bir çubuk (en sağ = bugün); `title` / tooltip “N gün önce · Durum”; kapsayıcı `role="img"` + özet `aria-label`.
-- **İnternet kesik algısı**: Lucy dış bağlantıyı kaybettiğinde dış alan adlarına giden kontroller `unknown` olur, kesinti sayılmaz, bildirim kuyruğa alınır; `.home`/yerel adresler kontrol edilmeye devam eder.
-- **Veri yok**: Lucy çalışmadığı aralıklar `no_data`; uptime yüzdesinin paydasına girmez.
-- **Canlı güncelleme**: ana ekran ve detay 5–10 sn’de bir yenilenir (SSE veya polling); hero cümlesi `aria-live`.
-- **Duyarlılık**: 375 px’de hiçbir satır yatay taşmaz. Panel → sayfa eşiği 900 px; liste satırı iki sıraya geçiş eşiği 600 px.
-- **i18n**: TR/EN. Türkçe metinler daha uzundur; tüm metin kapları sarılır (`text-wrap: pretty`), sabit yükseklik yok. Sayı biçimi yerel ayara göre (`99,20%` TR / `99.20%` EN), süreler `Intl.RelativeTimeFormat` ile.
+```bash
+docker compose up -d --build
+```
 
-## Durum yönetimi (öneri)
-- `auth`: `{ status: 'needsSetup' | 'loggedOut' | 'loggedIn', error? }`
-- `monitors`: `Monitor[]` — `{ id, name, url, method, headers, body, timeoutSec, intervalSec, alertThreshold, conditions[], status: 'up'|'warn'|'down'|'unknown', since, lastCheck, responseMs, uptime: {d1,d7,d30}, days: DayState[30], ssl: {daysLeft|null, expiresAt, issuer}, domain: {daysLeft|null, expiresAt, reason?} }`
-- `DayState = 'ok' | 'partial' | 'down' | 'unknown' | 'no_data'`
-- `network`: `{ online: boolean, offlineSince? }` → hero ve satır durumları.
-- `ui`: `selectedMonitorId` (panel/sayfa route’u `/m/:id`), `chartRange: '24h'|'7d'|'30d'`, `editorAdvancedOpen`, `testResult`.
-- `settings`: `{ ntfy: {server, topic, token}, language, theme }`.
-- Uç noktalar (öneri): `GET /api/monitors`, `GET /api/monitors/:id?range=7d` (seri + olaylar), `POST /api/monitors`, `PUT /api/monitors/:id`, `POST /api/monitors/test`, `POST /api/monitors/:id/check`, `POST /api/notify/test`, `GET/POST /api/backup.yaml`, `POST /api/auth/{setup,login,logout,password}`.
+Open `http://your-server:8080` right away and set your password. Until a password is set, whoever
+opens the page first can set it.
 
-## Bileşenler (React)
-`StatusIcon`, `StatusPill`, `UptimeBars`, `Button` (primary/secondary/ghost/icon), `SegmentedControl`, `TextField` + `FieldError`, `Stepper`, `Disclosure`, `MonitorRow` (desktop/mobile), `FocusCard`, `HeroStatus`, `ResponseChart` (bantlı), `UptimeTriad`, `ExpiryRow`, `EventTimeline`, `CheckResult`, `SettingsGroup` / `SettingsRow`, `Panel` (dialog), `Logo`. Örnekler: `designs/Lucy Sistem.dc.html`.
+The ntfy values in `.env` are only read on first start. After that, change them under **Settings**,
+where you can also send a test notification.
 
-## Tasarım token’ları
-Tamamı `tokens.css` içinde (açık/koyu, `[data-theme]` + `prefers-color-scheme`). Özet:
-- **Renk**: zemin/metin (`--bg --surface --hover --sep --sep-strong --ink --ink2`), durum (`--ok/-ink/-tint`, `--warn/-ink/-tint`, `--on-warn`, `--down/-ink/-tint`, `--unk/-ink`, `--none`, `--on-status`), etkileşim (`--accent --accent-ink --focus`). Değerler oklch; metin token’ları zeminlerinde AA.
-- **Tipografi**: display 34, title 30, stat 22, headline 20, brand 17, body 15, control 14, meta 13, caption 12, axis 11; ağırlıklar 400/500/550/600/650; sistem yığını + mono.
-- **Boşluk**: 2, 4, 6, 8, 12, 16, 20, 24, 32, 48, 64 px.
-- **Köşe**: bar 1.5, sm 8, md 10, lg 12, card 16, xl 18, pill 999.
-- **Gölge**: açık `0 1px 2px oklch(0 0 0/.04), 0 6px 24px oklch(0 0 0/.05)`; koyu `0 0 0 1px oklch(1 0 0/.05)`.
-- **Hareket**: 150 / 180 / 220 ms.
+## Configuration
 
-## Varlıklar
-- `assets/lucy-logo.svg` — 3c oturan kedi, `currentColor`, 24×24 viewBox. 16 px’e kadar okunur.
-- `assets/favicon.svg` — aynı şekil, sistem temasına göre renk değiştirir.
-- İkon glifleri (✓ ✕ ! ?, ok, +) basit SVG path’ler; `designs/*` içinde birebir mevcut. Ek ikon kütüphanesi gerekmez.
+Docker Compose reads these from `.env`:
 
-## Dosyalar
-- `designs/Lucy.dc.html` — tüm ekran ve durumlar (tur 1–4).
-- `designs/Lucy Sistem.dc.html` — token ve bileşen sayfası.
-- `designs/LucyHome2.dc.html` — ana ekran (seçilen: `variant="focus"`), `LucyHome.dc.html` — ilk sürüm (boş durum ve internet kesik referansı).
-- `designs/LucyLogin.dc.html`, `LucyDetail.dc.html`, `LucyEditor.dc.html`, `LucySettings.dc.html`.
-- `designs/support.js` — yalnızca HTML önizleme çalışma zamanı; uygulamaya taşınmaz.
-- `tokens.css` — üretimde kullanılabilir token dosyası.
+| Variable | Default | Description |
+| --- | --- | --- |
+| `LUCY_NTFY_TOPIC` | | ntfy topic for notifications. First start only. |
+| `LUCY_NTFY_SERVER` | `https://ntfy.sh` | Your own ntfy server, if you run one. First start only. |
+| `LUCY_NTFY_TOKEN` | | Access token for a protected ntfy server. First start only. |
+| `LUCY_PUBLIC_URL` | | Address your phone uses to reach Lucy, such as `http://192.168.1.10:8080`. Used for notification links and the icon. The value in Settings takes precedence. |
+| `LUCY_LANG` | `tr` | Language of notification texts: `en` or `tr`. |
+| `LUCY_PORT` | `8080` | Port published on the host. |
+| `TZ` | `Europe/Istanbul` | Time zone for day boundaries and times in notifications. |
+
+Lower-level settings for running the binary yourself:
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `LUCY_ADDR` | `127.0.0.1:8080` | Listen address. The container uses `0.0.0.0:8080`. |
+| `LUCY_DB` | `data/lucy.db` | SQLite database path. The container uses `/data/lucy.db`. |
+| `LUCY_PROBE_TARGETS` | `1.1.1.1:443,8.8.8.8:443` | Addresses Lucy dials to tell whether its own internet is up. |
+
+## Notifications
+
+Lucy sends four kinds of notifications to ntfy: an outage, a recovery with how long it lasted, an
+upcoming SSL or domain expiry, and an expired certificate or domain. Messages are queued in the
+database and retried with backoff, so a short ntfy or network problem does not lose them.
+
+- **Links.** With a Lucy address set, tapping a notification opens that monitor in Lucy, and the
+  notification carries *Open in Lucy* and *Open site* buttons.
+- **Icon.** Notifications point ntfy at Lucy's own icon. The ntfy Android app shows it when the phone
+  can reach your Lucy address; the iOS app always shows the ntfy icon.
+- **Urgent monitors** send outages at ntfy's highest priority, which can break through Do Not Disturb.
+  Whether it does depends on the ntfy app and your phone's settings.
+
+## Operating Lucy
+
+**Update** to a newer version. Data is kept and the database migrates itself:
+
+```bash
+git pull
+docker compose up -d --build
+```
+
+**Back up** your monitors and notification settings with **Settings → Export**. For a full backup
+that includes history, stop Lucy and copy the database volume:
+
+```bash
+docker compose stop
+docker run --rm -v lucy_lucy-data:/data:ro -v "$PWD":/backup alpine tar czf /backup/lucy-backup.tgz -C /data .
+docker compose start
+```
+
+The `lucy_` prefix of the volume name comes from the folder name; check with `docker volume ls`.
+
+**Forgot your password?** Reset it from the server:
+
+```bash
+docker exec -it lucy lucy reset-password
+```
+
+**Retention.** Individual checks are kept for 30 days and half-hourly summaries for a year.
+
+## Security
+
+- Lucy does not serve HTTPS. To reach it from outside your home network, put it behind a VPN such as
+  Tailscale or a reverse proxy that terminates TLS.
+- Passwords are hashed with Argon2id, login attempts are rate limited, and changing the password ends
+  all other sessions.
+- The container runs as a non-root user on a read-only file system with all capabilities dropped.
+
+See [SECURITY.md](SECURITY.md) for how to report a vulnerability.
+
+## Development
+
+Lucy is a Go backend with a React, TypeScript and Vite interface. In production the interface is
+embedded into the Go binary; in development Vite serves it and proxies `/api` to Go.
+
+Requirements: Go 1.27 and Node.js 24.
+
+```bash
+# Terminal 1: API on http://127.0.0.1:8080, database in data/lucy.db
+go run ./cmd/lucy
+
+# Terminal 2: interface on http://localhost:5173
+npm --prefix web install
+npm --prefix web run dev
+```
+
+Add `?state=ok`, `incident`, `offline`, `empty` or `error` to the address to see the interface with
+sample data and no backend. The screenshots in this README were taken that way.
+
+Run the tests and checks:
+
+```bash
+go test ./...
+npm --prefix web test
+npm --prefix web run lint
+npm --prefix web run build
+```
+
+### Project layout
+
+```
+cmd/lucy/          entry point and the reset-password command
+internal/alert/    up/down state machine and expiry warning stages
+internal/api/      HTTP API, authentication and backups
+internal/auth/     password hashing, sessions and login throttling
+internal/checker/  HTTP checks, conditions, TLS, RDAP and internet detection
+internal/notify/   notification texts and the ntfy delivery queue
+internal/scheduler/ runs checks on each monitor's interval
+internal/store/    SQLite storage, migrations and history rollups
+internal/yamlio/   YAML backup format
+web/               React interface
+```
+
+## Contributing
+
+Bug reports, ideas and pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md)
+first, and note that this project follows a [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## License
+
+Lucy is licensed under the [Apache License 2.0](LICENSE).
+
+Lucy is named after a black cat, who also posed for the logo.
