@@ -18,7 +18,7 @@ function write(key: string, value: string) {
 }
 
 export function getLanguage(): Language {
-  return read('lucy-language') === 'en' ? 'en' : 'tr'
+  return read('lucy-language') === 'tr' ? 'tr' : 'en'
 }
 
 export function saveLanguage(language: Language) {

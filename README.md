@@ -95,7 +95,7 @@ Docker Compose reads these from `.env`:
 | `LUCY_NTFY_SERVER` | `https://ntfy.sh` | Your own ntfy server, if you run one. First start only. |
 | `LUCY_NTFY_TOKEN` | | Access token for a protected ntfy server. First start only. |
 | `LUCY_PUBLIC_URL` | | Address your phone uses to reach Lucy, such as `http://192.168.1.10:8080`. Used for notification links and the icon. The value in Settings takes precedence. |
-| `LUCY_LANG` | `tr` | Language of notification texts: `en` or `tr`. |
+| `LUCY_LANG` | `en` | Language of notification texts: `en` or `tr`. The interface language is chosen in Settings. |
 | `LUCY_PORT` | `8080` | Port published on the host. |
 | `TZ` | `Europe/Istanbul` | Time zone for day boundaries and times in notifications. |
 

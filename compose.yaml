@@ -9,7 +9,7 @@ services:
       - "${LUCY_PORT:-8080}:8080"
     environment:
       TZ: ${TZ:-Europe/Istanbul}
-      LUCY_LANG: ${LUCY_LANG:-tr}
+      LUCY_LANG: ${LUCY_LANG:-en}
       LUCY_PUBLIC_URL: ${LUCY_PUBLIC_URL:-}
       LUCY_NTFY_SERVER: ${LUCY_NTFY_SERVER:-https://ntfy.sh}
       LUCY_NTFY_TOPIC: ${LUCY_NTFY_TOPIC:-}

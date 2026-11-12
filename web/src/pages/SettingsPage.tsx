@@ -58,8 +58,8 @@ export function SettingsPage() {
             value={i18n.language as Language}
             onChange={changeLanguage}
             options={[
-              { value: 'tr', label: 'Türkçe' },
               { value: 'en', label: 'English' },
+              { value: 'tr', label: 'Türkçe' },
             ]}
           />
         </div>

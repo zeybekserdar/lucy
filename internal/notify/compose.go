@@ -57,7 +57,7 @@ func (c Composer) phrases() phrases {
 	if p, ok := languages[c.Language]; ok {
 		return p
 	}
-	return languages["tr"]
+	return languages["en"]
 }
 
 func (c Composer) click(id string) string {

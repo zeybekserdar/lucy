@@ -7,7 +7,7 @@ import { tr } from './tr'
 void i18n.use(initReactI18next).init({
   resources: { tr: { translation: tr }, en: { translation: en } },
   lng: getLanguage(),
-  fallbackLng: 'tr',
+  fallbackLng: 'en',
   interpolation: { escapeValue: false },
 })
 
