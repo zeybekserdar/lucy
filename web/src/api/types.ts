@@ -29,6 +29,8 @@ export interface MonitorConfig {
   intervalSec: number
   alertThreshold: number
   conditions: Condition[]
+  /** Kesinti bildirimi telefonun sessiz modunu deler. */
+  urgent?: boolean
 }
 
 export interface Monitor extends MonitorConfig {

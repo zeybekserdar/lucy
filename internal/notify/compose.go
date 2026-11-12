@@ -17,6 +17,7 @@ type phrases struct {
 	domainSoon, domainDone          string
 	expiresIn, expired              string
 	testTitle, testBody             string
+	openLucy, openSite              string
 }
 
 var languages = map[string]phrases{
@@ -30,6 +31,7 @@ var languages = map[string]phrases{
 		domainSoon: "%s: alan adı bitiyor", domainDone: "%s: alan adının süresi doldu",
 		expiresIn: "%d gün kaldı · %s", expired: "Bitiş tarihi %s",
 		testTitle: "Lucy test bildirimi", testBody: "Bildirimler çalışıyor.",
+		openLucy: "Lucy'de aç", openSite: "Siteyi aç",
 	},
 	"en": {
 		down: "%s is down", recovered: "%s is back", lasted: "The outage lasted %s",
@@ -41,6 +43,7 @@ var languages = map[string]phrases{
 		domainSoon: "%s: domain is expiring", domainDone: "%s: domain has expired",
 		expiresIn: "%d days left · %s", expired: "Expiry date %s",
 		testTitle: "Lucy test notification", testBody: "Notifications are working.",
+		openLucy: "Open in Lucy", openSite: "Open site",
 	},
 }
 
@@ -66,43 +69,64 @@ func (c Composer) click(id string) string {
 
 func (c Composer) Test() store.Notification {
 	p := c.phrases()
-	return store.Notification{
-		Title: p.testTitle, Message: p.testBody, Priority: 3, Tags: []string{"white_check_mark"},
+	n := store.Notification{
+		Title: p.testTitle, Message: p.testBody, Priority: 3,
 		Click: c.PublicURL, // the test also proves the address opens on the phone
 	}
+	if c.PublicURL != "" {
+		n.Actions = []store.Action{{Label: p.openLucy, URL: c.PublicURL}}
+	}
+	return n
 }
 
-func (c Composer) Down(id, name, url, failure string) *store.Notification {
+// actions offers the monitor in Lucy, when Lucy has an address, and the site itself.
+func (c Composer) actions(p phrases, id, site string) []store.Action {
+	var actions []store.Action
+	if link := c.click(id); link != "" {
+		actions = append(actions, store.Action{Label: p.openLucy, URL: link})
+	}
+	if site != "" {
+		actions = append(actions, store.Action{Label: p.openSite, URL: site})
+	}
+	return actions
+}
+
+// Down rings through Do Not Disturb for urgent monitors.
+func (c Composer) Down(id, name, url, failure string, urgent bool) *store.Notification {
 	p := c.phrases()
+	priority := 4
+	if urgent {
+		priority = 5
+	}
 	return &store.Notification{
 		Title:    fmt.Sprintf(p.down, name),
 		Message:  describe(p, failure) + " · " + url,
-		Priority: 4,
-		Tags:     []string{"rotating_light"},
+		Priority: priority,
 		Click:    c.click(id),
+		Actions:  c.actions(p, id, url),
 	}
 }
 
-func (c Composer) Recovered(id, name string, lasted time.Duration) *store.Notification {
+func (c Composer) Recovered(id, name, url string, lasted time.Duration) *store.Notification {
 	p := c.phrases()
 	return &store.Notification{
 		Title:    fmt.Sprintf(p.recovered, name),
 		Message:  fmt.Sprintf(p.lasted, duration(p, lasted)),
 		Priority: 3,
-		Tags:     []string{"white_check_mark"},
 		Click:    c.click(id),
+		Actions:  c.actions(p, id, url),
 	}
 }
 
 // Expiry words a certificate ("ssl") or domain ("domain") warning.
-func (c Composer) Expiry(id, name, kind string, daysLeft int, expires time.Time) *store.Notification {
+func (c Composer) Expiry(id, name, url, kind string, daysLeft int, expires time.Time) *store.Notification {
 	p := c.phrases()
 	soon, done := p.sslSoon, p.sslDone
 	if kind == "domain" {
 		soon, done = p.domainSoon, p.domainDone
 	}
 	date := expires.Format("2006-01-02")
-	n := &store.Notification{Priority: 3, Tags: []string{"warning"}, Click: c.click(id)}
+	n := &store.Notification{Priority: 3, Click: c.click(id), Actions: c.actions(p, id, url)}
 	if daysLeft <= 0 {
 		n.Title = fmt.Sprintf(done, name)
 		n.Message = fmt.Sprintf(p.expired, date)

@@ -250,6 +250,23 @@ export function EditorPage() {
               <span className={styles.thresholdHint}>{t('editor.thresholdHint', { time: thresholdTime })}</span>
             </div>
           </div>
+          <div className={styles.field}>
+            <span className={styles.label}>{t('editor.alertKind')}</span>
+            <div className={styles.thresholdRow}>
+              <SegmentedControl
+                label={t('editor.alertKind')}
+                value={current.urgent ? 'urgent' : 'normal'}
+                onChange={(value) => update({ urgent: value === 'urgent' })}
+                options={[
+                  { value: 'normal', label: t('editor.alertNormal') },
+                  { value: 'urgent', label: t('editor.alertUrgent') },
+                ]}
+              />
+              <span className={styles.thresholdHint}>
+                {t(current.urgent ? 'editor.alertUrgentHint' : 'editor.alertNormalHint')}
+              </span>
+            </div>
+          </div>
         </section>
 
         <Disclosure title={t('editor.advanced')} summary={summary} open={advanced} onOpenChange={setAdvanced}>

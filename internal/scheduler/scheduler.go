@@ -155,9 +155,9 @@ func (s *Scheduler) Run(ctx context.Context, cfg model.Config) (checker.Result, 
 	if composer := s.composer(ctx); composer != nil {
 		switch event {
 		case alert.Down:
-			record.Notification = composer.Down(cfg.ID, cfg.Name, cfg.URL, result.Failure())
+			record.Notification = composer.Down(cfg.ID, cfg.Name, cfg.URL, result.Failure(), cfg.Urgent)
 		case alert.Recovered:
-			record.Notification = composer.Recovered(cfg.ID, cfg.Name, result.At.Sub(current.Since))
+			record.Notification = composer.Recovered(cfg.ID, cfg.Name, cfg.URL, result.At.Sub(current.Since))
 		}
 	}
 	if err := s.Store.Apply(ctx, record); err != nil {
@@ -199,7 +199,7 @@ func (s *Scheduler) warnExpiry(ctx context.Context, cfg model.Config, kind strin
 	}
 	var message *store.Notification
 	if composer := s.composer(ctx); notifyNow && composer != nil {
-		message = composer.Expiry(cfg.ID, cfg.Name, kind, days, expires)
+		message = composer.Expiry(cfg.ID, cfg.Name, cfg.URL, kind, days, expires)
 	}
 	return s.Store.SaveExpiryStage(ctx, cfg.ID, kind, next, message, now)
 }

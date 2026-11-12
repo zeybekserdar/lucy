@@ -25,7 +25,16 @@ type Ntfy struct {
 	Server string
 	Topic  string
 	Token  string
+	Icon   string // image the phone shows beside the notification
 	Client *http.Client
+}
+
+// IconURL is where a Lucy reachable at publicURL serves its notification icon.
+func IconURL(publicURL string) string {
+	if publicURL == "" {
+		return ""
+	}
+	return strings.TrimRight(publicURL, "/") + "/icon.png"
 }
 
 func (n Ntfy) Send(ctx context.Context, msg store.Notification) error {
@@ -35,14 +44,27 @@ func (n Ntfy) Send(ctx context.Context, msg store.Notification) error {
 
 // Publish also reports the HTTP status, 0 when the server gave no answer.
 func (n Ntfy) Publish(ctx context.Context, msg store.Notification) (int, error) {
-	payload, err := json.Marshal(map[string]any{
+	body := map[string]any{
 		"topic":    n.Topic,
 		"title":    msg.Title,
 		"message":  msg.Message,
 		"priority": msg.Priority,
-		"tags":     msg.Tags,
 		"click":    msg.Click,
-	})
+	}
+	if len(msg.Tags) > 0 {
+		body["tags"] = msg.Tags
+	}
+	if n.Icon != "" {
+		body["icon"] = n.Icon
+	}
+	if len(msg.Actions) > 0 {
+		actions := make([]map[string]string, len(msg.Actions))
+		for i, a := range msg.Actions {
+			actions[i] = map[string]string{"action": "view", "label": a.Label, "url": a.URL}
+		}
+		body["actions"] = actions
+	}
+	payload, err := json.Marshal(body)
 	if err != nil {
 		return 0, err
 	}
@@ -86,7 +108,7 @@ func (l Live) Send(ctx context.Context, msg store.Notification) error {
 	if settings.Topic == "" {
 		return ErrNotConfigured
 	}
-	return Ntfy{Server: settings.Server, Topic: settings.Topic, Token: settings.Token}.Send(ctx, msg)
+	return Ntfy{Server: settings.Server, Topic: settings.Topic, Token: settings.Token, Icon: IconURL(settings.PublicURL)}.Send(ctx, msg)
 }
 
 // PublicURL is the saved address, empty when none is set.

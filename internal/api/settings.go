@@ -96,7 +96,7 @@ func (s *Server) testNtfy(w http.ResponseWriter, r *http.Request) {
 		composer = *s.Scheduler.Composer
 	}
 	composer.PublicURL = settings.PublicURL
-	target := notify.Ntfy{Server: settings.Server, Topic: settings.Topic, Token: settings.Token}
+	target := notify.Ntfy{Server: settings.Server, Topic: settings.Topic, Token: settings.Token, Icon: notify.IconURL(settings.PublicURL)}
 	// Detached: leaving the page must not turn a sent message into a failure.
 	status, err := target.Publish(context.WithoutCancel(r.Context()), composer.Test())
 	writeJSON(w, http.StatusOK, map[string]any{"ok": err == nil, "status": status})

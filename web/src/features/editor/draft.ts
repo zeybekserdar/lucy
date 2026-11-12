@@ -15,6 +15,7 @@ export interface Draft {
   name: string
   intervalSec: number
   alertThreshold: number
+  urgent: boolean
   method: HttpMethod
   timeoutSec: string
   headers: DraftHeader[]
@@ -52,6 +53,7 @@ export function emptyDraft(): Draft {
     name: '',
     intervalSec: 60,
     alertThreshold: 3,
+    urgent: false,
     method: 'GET',
     timeoutSec: '10',
     headers: [],
@@ -66,6 +68,7 @@ export function toDraft(config: MonitorConfig): Draft {
     name: config.name,
     intervalSec: config.intervalSec,
     alertThreshold: config.alertThreshold,
+    urgent: config.urgent ?? false,
     method: config.method,
     timeoutSec: String(config.timeoutSec),
     headers: config.headers.map((header) => ({ ...header, uid: uid() })),
@@ -80,6 +83,7 @@ export function toConfig(draft: Draft): MonitorConfig {
     name: draft.name.trim(),
     intervalSec: draft.intervalSec,
     alertThreshold: draft.alertThreshold,
+    urgent: draft.urgent,
     method: draft.method,
     timeoutSec: Number(draft.timeoutSec),
     headers: draft.headers.map(({ name, value }) => ({ name, value })),

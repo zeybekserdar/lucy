@@ -107,6 +107,9 @@ ALTER TABLE monitors ADD COLUMN domain_checked INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE monitors ADD COLUMN domain_stage INTEGER NOT NULL DEFAULT 0;
 `, `
 ALTER TABLE monitors ADD COLUMN last_result TEXT NOT NULL DEFAULT '';
+`, `
+ALTER TABLE monitors ADD COLUMN urgent INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE notifications ADD COLUMN actions TEXT NOT NULL DEFAULT '[]';
 `}
 
 type Store struct {
@@ -197,10 +200,10 @@ func (s *Store) CreateMonitor(ctx context.Context, cfg model.Config) (model.Conf
 	}
 	_, err = s.db.ExecContext(ctx, `
 		INSERT INTO monitors (id, name, url, method, headers, body, timeout_sec, interval_sec,
-			alert_threshold, conditions, created_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			alert_threshold, conditions, urgent, created_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		cfg.ID, cfg.Name, cfg.URL, cfg.Method, headers, cfg.Body, cfg.TimeoutSec, cfg.IntervalSec,
-		cfg.AlertThreshold, conditions, time.Now().UnixMilli())
+		cfg.AlertThreshold, conditions, cfg.Urgent, time.Now().UnixMilli())
 	return cfg, err
 }
 
@@ -223,10 +226,10 @@ func (s *Store) UpdateMonitor(ctx context.Context, cfg model.Config) error {
 	}
 	result, err := tx.ExecContext(ctx, `
 		UPDATE monitors SET name = ?, url = ?, method = ?, headers = ?, body = ?, timeout_sec = ?,
-			interval_sec = ?, alert_threshold = ?, conditions = ?
+			interval_sec = ?, alert_threshold = ?, conditions = ?, urgent = ?
 		WHERE id = ?`,
 		cfg.Name, cfg.URL, cfg.Method, headers, cfg.Body, cfg.TimeoutSec, cfg.IntervalSec,
-		cfg.AlertThreshold, conditions, cfg.ID)
+		cfg.AlertThreshold, conditions, cfg.Urgent, cfg.ID)
 	if err != nil {
 		return err
 	}
@@ -266,7 +269,7 @@ func encode(cfg model.Config) (string, string, error) {
 
 const monitorColumns = `id, name, url, method, headers, body, timeout_sec, interval_sec, alert_threshold,
 	conditions, phase, fail_streak, ok_streak, fail_since, since, last_check, last_outcome, response_ms, failure,
-	ssl_expires, ssl_issuer, ssl_stage, domain_expires, domain_reason, domain_checked, domain_stage, last_result`
+	ssl_expires, ssl_issuer, ssl_stage, domain_expires, domain_reason, domain_checked, domain_stage, last_result, urgent`
 
 func scanMonitor(row interface{ Scan(...any) error }) (Monitor, error) {
 	var m Monitor
@@ -276,7 +279,7 @@ func scanMonitor(row interface{ Scan(...any) error }) (Monitor, error) {
 	err := row.Scan(&m.ID, &m.Name, &m.URL, &m.Method, &headers, &m.Body, &m.TimeoutSec, &m.IntervalSec,
 		&m.AlertThreshold, &conditions, &phase, &m.State.FailStreak, &m.State.OkStreak, &failSince, &since,
 		&lastCheck, &outcome, &responseMs, &m.Failure,
-		&sslExpires, &m.SSLIssuer, &m.SSLStage, &domainExpires, &m.DomainReason, &domainChecked, &m.DomainStage, &m.LastResult)
+		&sslExpires, &m.SSLIssuer, &m.SSLStage, &domainExpires, &m.DomainReason, &domainChecked, &m.DomainStage, &m.LastResult, &m.Urgent)
 	if err != nil {
 		return m, err
 	}
@@ -335,7 +338,14 @@ type Notification struct {
 	Priority int
 	Tags     []string
 	Click    string
+	Actions  []Action
 	Attempts int
+}
+
+// Action is a button under the notification that opens an address.
+type Action struct {
+	Label string `json:"label"`
+	URL   string `json:"url"`
 }
 
 // Record is the full effect of one check, applied atomically.
@@ -442,9 +452,13 @@ func enqueue(ctx context.Context, tx *sql.Tx, monitorID string, incidentID sql.N
 	if err != nil {
 		return err
 	}
+	actions, err := json.Marshal(n.Actions)
+	if err != nil {
+		return err
+	}
 	_, err = tx.ExecContext(ctx, `INSERT INTO notifications (monitor_id, incident_id, title, message, priority,
-		tags, click, created_at, next_attempt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		monitorID, incidentID, n.Title, n.Message, n.Priority, string(tags), n.Click, at, at)
+		tags, click, actions, created_at, next_attempt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		monitorID, incidentID, n.Title, n.Message, n.Priority, string(tags), n.Click, string(actions), at, at)
 	return err
 }
 
@@ -536,7 +550,7 @@ func (s *Store) LatestIncidents(ctx context.Context) (map[string]Incident, error
 }
 
 func (s *Store) DueNotifications(ctx context.Context, now time.Time) ([]Notification, error) {
-	rows, err := s.db.QueryContext(ctx, `SELECT id, title, message, priority, tags, click, attempts FROM notifications
+	rows, err := s.db.QueryContext(ctx, `SELECT id, title, message, priority, tags, click, actions, attempts FROM notifications
 		WHERE sent_at IS NULL AND next_attempt <= ? ORDER BY id`, now.UnixMilli())
 	if err != nil {
 		return nil, err
@@ -545,11 +559,14 @@ func (s *Store) DueNotifications(ctx context.Context, now time.Time) ([]Notifica
 	due := []Notification{}
 	for rows.Next() {
 		var n Notification
-		var tags string
-		if err := rows.Scan(&n.ID, &n.Title, &n.Message, &n.Priority, &tags, &n.Click, &n.Attempts); err != nil {
+		var tags, actions string
+		if err := rows.Scan(&n.ID, &n.Title, &n.Message, &n.Priority, &tags, &n.Click, &actions, &n.Attempts); err != nil {
 			return nil, err
 		}
 		if err := json.Unmarshal([]byte(tags), &n.Tags); err != nil {
+			return nil, err
+		}
+		if err := json.Unmarshal([]byte(actions), &n.Actions); err != nil {
 			return nil, err
 		}
 		due = append(due, n)

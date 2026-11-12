@@ -36,6 +36,8 @@ type Config struct {
 	IntervalSec    int         `json:"intervalSec" yaml:"intervalSec,omitempty"`
 	AlertThreshold int         `json:"alertThreshold" yaml:"alertThreshold,omitempty"`
 	Conditions     []Condition `json:"conditions" yaml:"conditions,omitempty"`
+	// Urgent outages reach the phone even in Do Not Disturb.
+	Urgent bool `json:"urgent" yaml:"urgent,omitempty"`
 }
 
 const MinIntervalSec = 30
